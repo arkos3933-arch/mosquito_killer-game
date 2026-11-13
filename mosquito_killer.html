@@ -1,0 +1,2826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>MOSQUITO KILLER – ULTIMATE EDITION 2.0</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --neon-cyan: #00f3ff;
+      --neon-red: #ff1e42;
+      --neon-green: #39ff14;
+      --neon-gold: #ffd700;
+      --dark-bg: #05070c;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--dark-bg);
+      font-family: 'Rajdhani', sans-serif;
+      color: #e2e8f0;
+      touch-action: none;
+    }
+
+    h1, h2, h3, .font-arcade {
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(8, 12, 22, 0.9);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, var(--neon-cyan), var(--neon-red));
+      border-radius: 999px;
+    }
+
+    .glow-cyan {
+      box-shadow: 0 0 16px rgba(0, 243, 255, 0.35), inset 0 0 10px rgba(0, 243, 255, 0.14);
+      border: 1px solid rgba(0, 243, 255, 0.55);
+    }
+    .glow-red {
+      box-shadow: 0 0 18px rgba(255, 30, 66, 0.45), inset 0 0 12px rgba(255, 30, 66, 0.2);
+      border: 1px solid rgba(255, 30, 66, 0.65);
+    }
+    .glow-gold {
+      box-shadow: 0 0 16px rgba(255, 215, 0, 0.4), inset 0 0 10px rgba(255, 215, 0, 0.15);
+      border: 1px solid rgba(255, 215, 0, 0.65);
+    }
+    .glow-green {
+      box-shadow: 0 0 16px rgba(57, 255, 20, 0.35), inset 0 0 10px rgba(57, 255, 20, 0.14);
+      border: 1px solid rgba(57, 255, 20, 0.55);
+    }
+
+    .text-glow-cyan {
+      text-shadow: 0 0 10px rgba(0, 243, 255, 0.8), 0 0 24px rgba(0, 243, 255, 0.4);
+    }
+    .text-glow-red {
+      text-shadow: 0 0 10px rgba(255, 30, 66, 0.85), 0 0 24px rgba(255, 30, 66, 0.5);
+    }
+    .text-glow-gold {
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.85), 0 0 24px rgba(255, 215, 0, 0.45);
+    }
+
+    .btn-arcade {
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+      cursor: pointer;
+    }
+    .btn-arcade:hover {
+      transform: translateY(-2px);
+    }
+    .btn-arcade:active {
+      transform: translateY(1px) scale(0.98);
+    }
+
+    .lab-vignette {
+      pointer-events: none;
+      background:
+        radial-gradient(circle at center, transparent 52%, rgba(2, 4, 10, 0.86) 100%),
+        repeating-linear-gradient(0deg, rgba(0, 243, 255, 0.016) 0px, rgba(0, 243, 255, 0.016) 1px, transparent 1px, transparent 3px);
+    }
+
+    @keyframes pulseBoss {
+      0%, 100% { border-color: rgba(255, 30, 66, 0.55); box-shadow: 0 0 14px rgba(255, 30, 66, 0.35); }
+      50% { border-color: rgba(255, 30, 66, 1); box-shadow: 0 0 28px rgba(255, 30, 66, 0.8); }
+    }
+    .boss-pulse {
+      animation: pulseBoss 1.3s infinite ease-in-out;
+    }
+
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-7px); }
+    }
+    .animate-float {
+      animation: floatSlow 2.8s ease-in-out infinite;
+    }
+
+    #gameCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+    }
+  </style>
+</head>
+<body class="bg-[#05070c] text-slate-100 select-none">
+
+  <!-- MAIN GAME CANVAS -->
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- ATMOSPHERIC VIGNETTE & DAMAGE FLASH -->
+  <div id="labVignette" class="fixed inset-0 lab-vignette z-10"></div>
+  <div id="damageOverlay" class="fixed inset-0 pointer-events-none z-20 bg-rose-600/0 transition-opacity duration-150"></div>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div id="toastContainer" class="fixed top-16 right-3 sm:right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-xs sm:max-w-sm"></div>
+
+  <!-- ========================================================= -->
+  <!-- 1. IN-GAME HUD                                            -->
+  <!-- ========================================================= -->
+  <div id="gameHUD" class="fixed inset-0 pointer-events-none z-30 hidden flex-col justify-between p-2.5 sm:p-4">
+    <!-- Top Bar -->
+    <div class="flex flex-col gap-2 w-full max-w-6xl mx-auto">
+      <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-950/90 backdrop-blur-md px-3.5 py-2 rounded-2xl glow-cyan">
+        <!-- Hearts & Health -->
+        <div class="flex items-center gap-2.5">
+          <div id="hudHearts" class="flex items-center gap-1 text-base sm:text-xl"></div>
+          <div class="hidden sm:flex flex-col w-24">
+            <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+              <div id="hudHealthFill" class="h-full bg-gradient-to-r from-rose-600 to-red-400 transition-all duration-150" style="width: 100%"></div>
+            </div>
+            <span id="hudShieldBadge" class="text-[10px] font-arcade text-cyan-400 hidden">🛡️ SHIELD ON</span>
+          </div>
+        </div>
+
+        <!-- Level & Progress -->
+        <div class="flex flex-col items-center flex-1 min-w-[150px] max-w-xs">
+          <div class="flex items-center justify-between w-full text-xs sm:text-sm font-arcade gap-2">
+            <span id="hudLevelLabel" class="text-cyan-300 font-bold">LEVEL 1 / 100</span>
+            <span id="hudModeBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">CLASSIC</span>
+            <span id="hudObjectiveText" class="text-slate-200">0 / 10</span>
+          </div>
+          <div class="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden mt-1 border border-cyan-500/30">
+            <div id="hudProgressBar" class="h-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 transition-all duration-150" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Score, Coins & Pause -->
+        <div class="flex items-center gap-3 sm:gap-4">
+          <div class="text-right">
+            <div class="text-[10px] uppercase tracking-wider text-slate-400">SCORE</div>
+            <div id="hudScore" class="font-arcade text-sm sm:text-base font-bold text-white">0</div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10px] uppercase tracking-wider text-amber-400">COINS</div>
+            <div id="hudCoins" class="font-arcade text-sm sm:text-base font-bold text-amber-300">0</div>
+          </div>
+          <button onclick="Game.pause()" class="pointer-events-auto btn-arcade p-2.5 rounded-xl bg-slate-900 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/20" title="Pause">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Boss Health Bar -->
+      <div id="hudBossContainer" class="hidden w-full max-w-2xl mx-auto bg-slate-950/95 backdrop-blur-md px-4 py-2.5 rounded-2xl boss-pulse">
+        <div class="flex justify-between items-center mb-1">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 text-[10px] font-arcade font-bold bg-rose-600 text-white rounded">BOSS</span>
+            <span id="hudBossName" class="font-arcade text-xs sm:text-base font-bold text-rose-400 tracking-wider">CRIMSON MOSQUITO</span>
+          </div>
+          <span id="hudBossHpText" class="font-arcade text-xs sm:text-sm text-rose-200">1,000 / 1,000</span>
+        </div>
+        <div class="w-full h-3.5 bg-slate-900 rounded-full overflow-hidden border border-rose-500/50 p-0.5">
+          <div id="hudBossHpBar" class="h-full rounded-full bg-gradient-to-r from-red-700 via-rose-500 to-amber-400 transition-all duration-100" style="width: 100%"></div>
+        </div>
+      </div>
+
+      <!-- Active Powerups Pills -->
+      <div id="hudActivePowerups" class="flex flex-wrap justify-center gap-2"></div>
+    </div>
+
+    <!-- Combo Counter -->
+    <div id="hudComboBox" class="hidden self-start ml-2 sm:ml-6 bg-slate-950/80 border border-purple-500/50 px-3.5 py-1.5 rounded-xl backdrop-blur-sm">
+      <div id="hudComboCount" class="font-arcade text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-purple-400">5x COMBO</div>
+      <div id="hudComboMult" class="text-xs font-bold text-amber-300">MULTIPLIER x1.5</div>
+    </div>
+
+    <!-- Bottom Weapon & Danger Line Status -->
+    <div class="flex flex-col items-center w-full">
+      <div class="flex items-center justify-between w-full max-w-lg bg-slate-950/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-slate-800 gap-3">
+        <div class="flex items-center gap-2.5">
+          <span id="hudWeaponIcon" class="text-2xl">🩴</span>
+          <div>
+            <div id="hudWeaponName" class="font-arcade text-xs font-bold text-cyan-300">BASIC SANDAL</div>
+            <div id="hudWeaponStats" class="text-[11px] text-slate-400">LVL 1 • DMG 20</div>
+          </div>
+        </div>
+        <div class="text-xs font-arcade text-rose-500 font-bold tracking-wider">
+          ☠ LASER BREACH LINE
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- 2. MAIN MENU SCREEN                                       -->
+  <!-- ========================================================= -->
+  <div id="screenMainMenu" class="fixed inset-0 z-40 flex flex-col justify-between p-4 sm:p-6 overflow-y-auto">
+    <!-- Top Header -->
+    <div class="flex flex-wrap items-center justify-between gap-3 w-full max-w-6xl mx-auto">
+      <button onclick="UI.openModal('modalProfile')" class="btn-arcade flex items-center gap-3 bg-slate-900/95 px-3.5 py-2 rounded-2xl glow-cyan">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-700 flex items-center justify-center font-arcade font-black text-slate-950 text-lg">🧬</div>
+        <div class="text-left">
+          <div id="menuPlayerName" class="font-arcade text-xs sm:text-sm font-bold text-cyan-300">AGENT_ZERO</div>
+          <div id="menuPlayerRank" class="text-xs text-slate-400">Unlocked 1/100 • Kills: 0</div>
+        </div>
+      </button>
+
+      <div class="flex items-center gap-2.5">
+        <div class="flex items-center gap-2 bg-slate-900/95 px-3.5 py-2 rounded-2xl glow-gold">
+          <span class="text-lg">🪙</span>
+          <span id="menuCoins" class="font-arcade font-bold text-amber-300 text-sm sm:text-base">0</span>
+        </div>
+
+        <button onclick="UI.openModal('modalDaily')" class="btn-arcade relative bg-slate-900/95 p-2.5 rounded-2xl border border-amber-400/50 text-amber-300" title="Daily Rewards">
+          <span class="text-lg">🎁</span>
+          <span id="dailyNotificationDot" class="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-rose-500 animate-ping"></span>
+        </button>
+
+        <button onclick="AudioEngine.toggleMute()" class="btn-arcade bg-slate-900/95 p-2.5 rounded-2xl border border-cyan-500/40 text-cyan-300" title="Mute / Unmute">
+          <span id="muteIconText" class="text-lg">🔊</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Center Hero Title & Action Buttons -->
+    <div class="flex flex-col items-center text-center my-auto py-4 max-w-3xl mx-auto">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-rose-950/85 border border-rose-500/70 text-rose-300 text-xs font-arcade tracking-widest mb-3">
+        <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+        100-LEVEL CAMPAIGN // 20 APEX BOSSES
+      </div>
+
+      <h1 class="font-arcade text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-white leading-tight">
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-white to-cyan-400 text-glow-cyan">MOSQUITO KILLER</span>
+        <span class="block text-xl sm:text-3xl md:text-4xl mt-1 text-rose-500 text-glow-red">ULTIMATE EDITION 2.0</span>
+      </h1>
+
+      <p class="text-slate-300 text-sm sm:text-base max-w-xl mt-3 mb-6">
+        Purge 100 bio-lab containment sectors, upgrade 10 experimental weapons, and defeat 20 Apex Bosses up to The Eternal Mosquito God.
+      </p>
+
+      <div class="flex flex-col sm:flex-row items-center gap-3 w-full max-w-lg">
+        <button onclick="Game.startMode('classic', SaveSystem.data.currentLevel)" class="btn-arcade w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-cyan-400 via-blue-500 to-cyan-400 text-slate-950 font-arcade font-black text-base sm:text-lg tracking-wider shadow-[0_0_25px_rgba(0,243,255,0.55)]">
+          ▶ PLAY LEVEL <span id="menuPlayLevelNum">1</span> / 100
+        </button>
+        <button onclick="UI.openModal('modalModes')" class="btn-arcade w-full sm:w-auto py-4 px-6 rounded-2xl bg-slate-900/95 glow-red text-rose-400 font-arcade font-bold text-sm sm:text-base whitespace-nowrap">
+          ⚡ 7 MODES
+        </button>
+      </div>
+
+      <!-- Navigation Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5 w-full max-w-4xl mt-6">
+        <button onclick="UI.openModal('modalLevels')" class="btn-arcade flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-900/90 border border-slate-700/80 hover:border-cyan-400">
+          <span class="text-2xl mb-1">🗺️</span>
+          <span class="font-arcade text-xs font-bold text-slate-200">100 LEVELS</span>
+        </button>
+        <button onclick="UI.openModal('modalShop')" class="btn-arcade flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-900/90 border border-slate-700/80 hover:border-amber-400">
+          <span class="text-2xl mb-1">🔫</span>
+          <span class="font-arcade text-xs font-bold text-amber-300">ARSENAL</span>
+        </button>
+        <button onclick="UI.openModal('modalDaily')" class="btn-arcade flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-900/90 border border-slate-700/80 hover:border-emerald-400">
+          <span class="text-2xl mb-1">📅</span>
+          <span class="font-arcade text-xs font-bold text-emerald-300">DAILY</span>
+        </button>
+        <button onclick="UI.openModal('modalAchievements')" class="btn-arcade flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-900/90 border border-slate-700/80 hover:border-purple-400">
+          <span class="text-2xl mb-1">🏆</span>
+          <span class="font-arcade text-xs font-bold text-purple-300">TROPHIES</span>
+        </button>
+        <button onclick="UI.openModal('modalStats')" class="btn-arcade flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-900/90 border border-slate-700/80 hover:border-blue-400">
+          <span class="text-2xl mb-1">📊</span>
+          <span class="font-arcade text-xs font-bold text-blue-300">STATS</span>
+        </button>
+        <button onclick="UI.openModal('modalSettings')" class="btn-arcade flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-900/90 border border-slate-700/80 hover:border-rose-400">
+          <span class="text-2xl mb-1">⚙️</span>
+          <span class="font-arcade text-xs font-bold text-slate-300">SETTINGS</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Bottom Weapon Quick-Bar -->
+    <div class="w-full max-w-xl mx-auto bg-slate-950/95 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-800 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span id="menuEquippedIcon" class="text-2xl">🩴</span>
+        <div>
+          <div class="text-[10px] uppercase tracking-wider text-slate-400">EQUIPPED WEAPON</div>
+          <div id="menuEquippedName" class="font-arcade text-xs sm:text-sm font-bold text-cyan-300">BASIC SANDAL (LVL 1)</div>
+        </div>
+      </div>
+      <button onclick="UI.openModal('modalShop')" class="btn-arcade px-3.5 py-1.5 rounded-xl bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 font-arcade text-xs font-bold">
+        UPGRADE
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- 3. MODAL SCREENS                                          -->
+  <!-- ========================================================= -->
+
+  <!-- MODAL: 100-LEVEL SELECTION (5 SECTORS) -->
+  <div id="modalLevels" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-6">
+    <div class="bg-slate-950 w-full max-w-4xl max-h-[90vh] rounded-3xl glow-cyan flex flex-col overflow-hidden">
+      <div class="flex flex-wrap items-center justify-between gap-2 p-4 sm:p-5 border-b border-slate-800">
+        <div>
+          <h2 class="font-arcade text-lg sm:text-2xl font-bold text-cyan-300">100-LEVEL CAMPAIGN SELECT</h2>
+          <p class="text-xs sm:text-sm text-slate-400">5 Sectors • Mandatory Apex Boss every 5th Level (Lv 5 – Lv 100)</p>
+        </div>
+        <button onclick="UI.closeModals()" class="btn-arcade px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 font-arcade text-xs">✕ CLOSE</button>
+      </div>
+      <!-- Sector Tabs -->
+      <div id="sectorTabsBar" class="flex flex-wrap gap-1.5 px-4 pt-3 pb-2 bg-slate-900/60 border-b border-slate-800"></div>
+      <!-- Levels Grid -->
+      <div id="levelGridContainer" class="p-4 sm:p-6 overflow-y-auto grid grid-cols-4 sm:grid-cols-5 gap-2.5"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: 7 GAME MODES -->
+  <div id="modalModes" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-6">
+    <div class="bg-slate-950 w-full max-w-4xl max-h-[90vh] rounded-3xl glow-red flex flex-col overflow-hidden">
+      <div class="flex items-center justify-between p-4 sm:p-5 border-b border-slate-800">
+        <div>
+          <h2 class="font-arcade text-lg sm:text-2xl font-bold text-rose-400">COMBAT PROTOCOLS (7 MODES)</h2>
+          <p class="text-xs sm:text-sm text-slate-400">Choose your containment challenge and earn bonus rewards.</p>
+        </div>
+        <button onclick="UI.closeModals()" class="btn-arcade px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 font-arcade text-xs">✕ CLOSE</button>
+      </div>
+      <div id="modesListContainer" class="p-4 sm:p-6 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-3.5"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: WEAPON SHOP 2.0 -->
+  <div id="modalShop" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-6">
+    <div class="bg-slate-950 w-full max-w-5xl max-h-[90vh] rounded-3xl glow-gold flex flex-col overflow-hidden">
+      <div class="flex flex-wrap items-center justify-between gap-2 p-4 sm:p-5 border-b border-slate-800">
+        <div>
+          <h2 class="font-arcade text-lg sm:text-2xl font-bold text-amber-300">WEAPON ARSENAL 2.0</h2>
+          <p class="text-xs sm:text-sm text-slate-400">Unlock 10 weapons & upgrade each from Level 1 to Level 10.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="px-3.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-400/40 font-arcade text-amber-300 text-sm">
+            🪙 <span id="shopCoinsDisplay">0</span>
+          </div>
+          <button onclick="UI.closeModals()" class="btn-arcade px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 font-arcade text-xs">✕ CLOSE</button>
+        </div>
+      </div>
+      <div id="weaponShopContainer" class="p-4 sm:p-6 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: WEAPON UPGRADE -->
+  <div id="modalWeaponUpgrade" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/90 backdrop-blur-md p-4">
+    <div class="bg-slate-950 w-full max-w-md rounded-3xl glow-cyan p-5 sm:p-6 flex flex-col gap-4">
+      <div class="flex justify-between items-start">
+        <div class="flex items-center gap-3">
+          <div id="upgWeaponIcon" class="text-4xl p-3 rounded-2xl bg-slate-900 border border-cyan-500/40">⚡</div>
+          <div>
+            <h3 id="upgWeaponName" class="font-arcade text-lg font-bold text-cyan-300">ELECTRIC BAT</h3>
+            <span id="upgWeaponTier" class="text-xs font-arcade text-amber-400">UPGRADE LEVEL 1 / 10</span>
+          </div>
+        </div>
+        <button onclick="UI.openModal('modalShop')" class="text-slate-400 hover:text-white font-arcade text-sm">✕</button>
+      </div>
+
+      <p id="upgWeaponDesc" class="text-sm text-slate-300"></p>
+
+      <div class="bg-slate-900 rounded-2xl p-3.5 border border-slate-800 space-y-2 text-sm">
+        <div class="flex justify-between">
+          <span class="text-slate-400">Damage Power:</span>
+          <span id="upgStatDamage" class="font-arcade font-bold text-rose-400">20 → 26</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Blast Radius:</span>
+          <span id="upgStatRadius" class="font-arcade font-bold text-cyan-300">45px → 50px</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Crit Chance:</span>
+          <span id="upgStatCrit" class="font-arcade font-bold text-amber-300">10% → 13%</span>
+        </div>
+      </div>
+
+      <div id="upgLevelPips" class="grid grid-cols-10 gap-1.5"></div>
+
+      <div class="flex gap-2 mt-2">
+        <button id="btnConfirmUpgrade" class="btn-arcade flex-1 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-arcade font-black text-sm">
+          UPGRADE (🪙 250)
+        </button>
+        <button onclick="UI.openModal('modalShop')" class="btn-arcade px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 font-arcade text-xs text-slate-300">
+          BACK
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PLAYER PROFILE -->
+  <div id="modalProfile" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-md p-4">
+    <div class="bg-slate-950 w-full max-w-lg rounded-3xl glow-cyan p-5 sm:p-6 flex flex-col gap-4">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h2 class="font-arcade text-xl font-bold text-cyan-300">OPERATIVE PROFILE</h2>
+        <button onclick="UI.closeModals()" class="btn-arcade px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-arcade">✕</button>
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-arcade text-slate-400">OPERATIVE CALLSIGN</label>
+        <div class="flex gap-2">
+          <input id="inputPlayerName" type="text" maxlength="18" class="flex-1 bg-slate-900 border border-cyan-500/40 rounded-xl px-3.5 py-2 font-arcade text-sm text-white focus:outline-none focus:border-cyan-400" placeholder="Enter Name..." />
+          <button onclick="UI.savePlayerName()" class="btn-arcade px-4 py-2 rounded-xl bg-cyan-500 text-slate-950 font-arcade font-bold text-xs">SAVE</button>
+        </div>
+      </div>
+
+      <div id="profileSummaryGrid" class="grid grid-cols-2 gap-3 text-sm"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: ACHIEVEMENTS -->
+  <div id="modalAchievements" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-6">
+    <div class="bg-slate-950 w-full max-w-3xl max-h-[88vh] rounded-3xl border border-purple-500/50 shadow-[0_0_25px_rgba(184,41,255,0.25)] flex flex-col overflow-hidden">
+      <div class="flex items-center justify-between p-4 sm:p-5 border-b border-slate-800">
+        <div>
+          <h2 class="font-arcade text-lg sm:text-2xl font-bold text-purple-300">ACHIEVEMENTS</h2>
+          <p id="achProgressSummary" class="text-xs text-slate-400">0 / 11 Unlocked</p>
+        </div>
+        <button onclick="UI.closeModals()" class="btn-arcade px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-arcade">✕ CLOSE</button>
+      </div>
+      <div id="achievementsContainer" class="p-4 sm:p-5 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: DAILY REWARDS -->
+  <div id="modalDaily" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-6">
+    <div class="bg-slate-950 w-full max-w-3xl max-h-[90vh] rounded-3xl glow-gold flex flex-col overflow-hidden">
+      <div class="flex items-center justify-between p-4 sm:p-5 border-b border-slate-800">
+        <div>
+          <h2 class="font-arcade text-lg sm:text-2xl font-bold text-amber-300">7-DAY DAILY REWARDS</h2>
+          <p class="text-xs text-slate-400">Claim escalating daily coin supplies & complete today's bounty.</p>
+        </div>
+        <button onclick="UI.closeModals()" class="btn-arcade px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-arcade">✕ CLOSE</button>
+      </div>
+      <div class="p-4 sm:p-6 overflow-y-auto space-y-5">
+        <div id="dailyGridContainer" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5"></div>
+
+        <div class="bg-slate-900 border border-cyan-500/40 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <div class="text-xs font-arcade text-cyan-400">⚡ DAILY BOUNTY CHALLENGE</div>
+            <div class="font-bold text-white text-base mt-0.5">Eliminate 50 Mosquitoes today</div>
+            <div id="dailyChallengeProgress" class="text-xs text-slate-400 mt-1">Progress: 0 / 50</div>
+          </div>
+          <button id="btnClaimDailyChallenge" onclick="DailySystem.claimChallenge()" class="btn-arcade px-4 py-2.5 rounded-xl bg-cyan-500 text-slate-950 font-arcade font-bold text-xs disabled:opacity-40">
+            CLAIM 🪙 300
+          </button>
+        </div>
+
+        <div>
+          <h4 class="font-arcade text-xs text-slate-400 mb-2">REWARD HISTORY</h4>
+          <div id="dailyHistoryList" class="bg-slate-900/70 rounded-xl p-3 text-xs text-slate-300 space-y-1 max-h-28 overflow-y-auto"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: STATISTICS -->
+  <div id="modalStats" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-md p-4">
+    <div class="bg-slate-950 w-full max-w-2xl max-h-[88vh] rounded-3xl glow-cyan flex flex-col overflow-hidden">
+      <div class="flex items-center justify-between p-4 sm:p-5 border-b border-slate-800">
+        <h2 class="font-arcade text-lg sm:text-xl font-bold text-cyan-300">COMBAT STATISTICS</h2>
+        <button onclick="UI.closeModals()" class="btn-arcade px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-arcade">✕ CLOSE</button>
+      </div>
+      <div id="statsContainer" class="p-4 sm:p-6 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: SETTINGS -->
+  <div id="modalSettings" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-md p-4">
+    <div class="bg-slate-950 w-full max-w-lg max-h-[90vh] rounded-3xl glow-cyan flex flex-col overflow-hidden">
+      <div class="flex items-center justify-between p-4 sm:p-5 border-b border-slate-800">
+        <h2 class="font-arcade text-lg sm:text-xl font-bold text-cyan-300">SYSTEM SETTINGS</h2>
+        <button onclick="UI.closeModals()" class="btn-arcade px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-arcade">✕ CLOSE</button>
+      </div>
+      <div class="p-4 sm:p-6 overflow-y-auto space-y-4 text-sm">
+        <div>
+          <div class="flex justify-between font-arcade text-xs mb-1">
+            <span>BACKGROUND MUSIC VOLUME</span>
+            <span id="setMusicVal" class="text-cyan-300">60%</span>
+          </div>
+          <input id="rangeMusicVol" type="range" min="0" max="100" value="60" oninput="UI.updateSettings()" class="w-full accent-cyan-400" />
+        </div>
+
+        <div>
+          <div class="flex justify-between font-arcade text-xs mb-1">
+            <span>SOUND EFFECTS VOLUME</span>
+            <span id="setSfxVal" class="text-cyan-300">80%</span>
+          </div>
+          <input id="rangeSfxVol" type="range" min="0" max="100" value="80" oninput="UI.updateSettings()" class="w-full accent-cyan-400" />
+        </div>
+
+        <div class="flex items-center justify-between bg-slate-900 p-3 rounded-xl border border-slate-800">
+          <span class="font-arcade text-xs">GRAPHICS QUALITY</span>
+          <select id="selectGraphics" onchange="UI.updateSettings()" class="bg-slate-950 border border-cyan-500/40 rounded-lg px-3 py-1.5 font-arcade text-xs text-cyan-300">
+            <option value="high">HIGH (NEON + PARTICLES)</option>
+            <option value="low">LOW (PERFORMANCE)</option>
+          </select>
+        </div>
+
+        <div class="flex items-center justify-between bg-slate-900 p-3 rounded-xl border border-slate-800">
+          <span class="font-arcade text-xs">HAPTIC VIBRATION</span>
+          <input id="checkVibration" type="checkbox" onchange="UI.updateSettings()" class="w-5 h-5 accent-cyan-400" checked />
+        </div>
+
+        <div class="flex items-center justify-between bg-slate-900 p-3 rounded-xl border border-slate-800">
+          <span class="font-arcade text-xs">PERFORMANCE MODE</span>
+          <input id="checkPerfMode" type="checkbox" onchange="UI.updateSettings()" class="w-5 h-5 accent-cyan-400" />
+        </div>
+
+        <div class="pt-3 border-t border-slate-800">
+          <div id="resetStep1">
+            <button onclick="document.getElementById('resetStep1').classList.add('hidden'); document.getElementById('resetStep2').classList.remove('hidden');" class="btn-arcade w-full py-2.5 rounded-xl bg-rose-950/70 border border-rose-500/50 text-rose-300 font-arcade text-xs font-bold">
+              ⚠ RESET ALL PROGRESS
+            </button>
+          </div>
+          <div id="resetStep2" class="hidden bg-rose-950/90 border border-rose-500 rounded-xl p-3 text-center space-y-2">
+            <p class="text-xs text-rose-200 font-bold">Permanently erase all levels, coins, weapons, and achievements?</p>
+            <div class="flex gap-2">
+              <button onclick="SaveSystem.resetAll()" class="btn-arcade flex-1 py-2 rounded-lg bg-rose-600 text-white font-arcade text-xs font-bold">CONFIRM WIPE</button>
+              <button onclick="document.getElementById('resetStep2').classList.add('hidden'); document.getElementById('resetStep1').classList.remove('hidden');" class="btn-arcade flex-1 py-2 rounded-lg bg-slate-800 text-slate-200 font-arcade text-xs">CANCEL</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- 4. IN-GAME OVERLAY SCREENS                                -->
+  <!-- ========================================================= -->
+
+  <!-- BOSS INTRODUCTION WARNING OVERLAY -->
+  <div id="overlayBossIntro" class="fixed inset-0 z-50 hidden flex-col items-center justify-center bg-black/80 backdrop-blur-sm p-4 text-center">
+    <div class="max-w-lg w-full bg-slate-950/95 rounded-3xl boss-pulse p-6 sm:p-8 space-y-4">
+      <div class="inline-block px-4 py-1 rounded-full bg-rose-600 text-white font-arcade text-xs sm:text-sm font-black tracking-widest animate-pulse">
+        ⚠ APEX BOSS WARNING ⚠
+      </div>
+      <div id="bossIntroIcon" class="text-6xl sm:text-7xl animate-float">🦟</div>
+      <h2 id="bossIntroName" class="font-arcade text-2xl sm:text-4xl font-black text-rose-500 text-glow-red">CRIMSON MOSQUITO</h2>
+      <p id="bossIntroSubtitle" class="text-sm sm:text-base text-slate-300">Sector Guardian</p>
+      <div class="flex justify-center gap-4 text-xs font-arcade text-amber-300 pt-1">
+        <span id="bossIntroHp">HP: 1,100</span>
+        <span>•</span>
+        <span id="bossIntroReward">BOUNTY: 🪙 500</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAUSE OVERLAY -->
+  <div id="overlayPause" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-md p-4">
+    <div class="bg-slate-950 w-full max-w-sm rounded-3xl glow-cyan p-6 text-center space-y-4">
+      <h2 class="font-arcade text-2xl font-black text-cyan-300">GAME PAUSED</h2>
+      <p id="pauseStatsLine" class="text-xs text-slate-400 font-arcade">LEVEL 1 • SCORE 0</p>
+      <div class="flex flex-col gap-2.5 pt-2">
+        <button onclick="Game.resume()" class="btn-arcade w-full py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-slate-950 font-arcade font-black text-sm">▶ RESUME</button>
+        <button onclick="Game.restartLevel()" class="btn-arcade w-full py-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 font-arcade font-bold text-sm">↻ RESTART LEVEL</button>
+        <button onclick="UI.openModal('modalSettings')" class="btn-arcade w-full py-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 font-arcade font-bold text-sm">⚙ SETTINGS</button>
+        <button onclick="Game.quitToMenu()" class="btn-arcade w-full py-3 rounded-xl bg-rose-950/70 border border-rose-500/40 text-rose-300 font-arcade font-bold text-sm">⏏ MAIN MENU</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEVEL COMPLETED OVERLAY -->
+  <div id="overlayLevelComplete" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-md p-4">
+    <div class="bg-slate-950 w-full max-w-md rounded-3xl glow-cyan p-6 sm:p-7 text-center space-y-4">
+      <div class="inline-block px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 font-arcade text-xs font-bold">
+        SECTOR CLEARED
+      </div>
+      <h2 id="lcTitle" class="font-arcade text-2xl sm:text-3xl font-black text-white">LEVEL 1 COMPLETE!</h2>
+
+      <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 space-y-2 text-sm">
+        <div class="flex justify-between">
+          <span class="text-slate-400">Mosquitoes Eliminated:</span>
+          <span id="lcKills" class="font-arcade font-bold text-cyan-300">12</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Max Combo:</span>
+          <span id="lcCombo" class="font-arcade font-bold text-purple-300">6x</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Level Score:</span>
+          <span id="lcScore" class="font-arcade font-bold text-white">1,250</span>
+        </div>
+        <div class="flex justify-between border-t border-slate-800 pt-2">
+          <span class="text-amber-300 font-bold">Coin Reward:</span>
+          <span id="lcCoins" class="font-arcade font-black text-amber-300 text-base">+150 🪙</span>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-2.5 pt-2">
+        <button id="btnNextLevel" onclick="Game.nextLevel()" class="btn-arcade flex-1 py-3.5 px-4 rounded-xl bg-gradient-to-r from-cyan-400 to-emerald-400 text-slate-950 font-arcade font-black text-sm">
+          NEXT LEVEL ▶
+        </button>
+        <button onclick="UI.openModal('modalShop')" class="btn-arcade py-3.5 px-4 rounded-xl bg-slate-900 border border-amber-400/50 text-amber-300 font-arcade font-bold text-xs">
+          🔫 SHOP
+        </button>
+        <button onclick="Game.quitToMenu()" class="btn-arcade py-3.5 px-4 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 font-arcade font-bold text-xs">
+          MENU
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAMPAIGN 100-LEVEL VICTORY CELEBRATION OVERLAY -->
+  <div id="overlayCampaignVictory" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/90 backdrop-blur-md p-4">
+    <div class="bg-slate-950 w-full max-w-lg rounded-3xl glow-gold p-6 sm:p-8 text-center space-y-4">
+      <div class="inline-block px-4 py-1 rounded-full bg-amber-500/20 border border-amber-400 text-amber-300 font-arcade text-xs font-black tracking-widest">
+        👑 100 / 100 SECTORS CONQUERED 👑
+      </div>
+      <div class="text-6xl animate-float">🏆</div>
+      <h2 class="font-arcade text-2xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 text-glow-gold">
+        ULTIMATE CAMPAIGN VICTORY!
+      </h2>
+      <p class="text-sm text-slate-300">
+        You defeated <span class="text-rose-400 font-bold">THE ETERNAL MOSQUITO GOD</span> and purged all 100 Sectors!
+      </p>
+      <div class="bg-slate-900 rounded-2xl p-4 border border-amber-400/40 space-y-2 text-sm">
+        <div class="flex justify-between">
+          <span class="text-slate-400">Grand Mastery Bonus:</span>
+          <span class="font-arcade font-black text-amber-300 text-base">+50,000 🪙</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Trophy Unlocked:</span>
+          <span class="font-arcade font-bold text-purple-300">100 Level Legend</span>
+        </div>
+      </div>
+      <div class="flex flex-col sm:flex-row gap-2.5 pt-2">
+        <button onclick="Game.startMode('endless', 100)" class="btn-arcade flex-1 py-3.5 px-4 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-arcade font-black text-sm">
+          ♾️ ENTER ENDLESS MODE
+        </button>
+        <button onclick="Game.quitToMenu()" class="btn-arcade py-3.5 px-5 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 font-arcade font-bold text-xs">
+          MAIN MENU
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME OVER OVERLAY -->
+  <div id="overlayGameOver" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/85 backdrop-blur-md p-4">
+    <div class="bg-slate-950 w-full max-w-md rounded-3xl glow-red p-6 sm:p-7 text-center space-y-4">
+      <div class="inline-block px-3 py-1 rounded-full bg-rose-500/20 border border-rose-500/50 text-rose-400 font-arcade text-xs font-bold">
+        CONTAINMENT BREACHED
+      </div>
+      <h2 class="font-arcade text-3xl sm:text-4xl font-black text-rose-500 text-glow-red">GAME OVER</h2>
+      <p id="goReason" class="text-xs sm:text-sm text-slate-400">Too many mutant mosquitoes breached your bio-defense line.</p>
+
+      <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 space-y-2 text-sm">
+        <div class="flex justify-between">
+          <span class="text-slate-400">Sector Reached:</span>
+          <span id="goLevel" class="font-arcade font-bold text-cyan-300">Level 4</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Final Score:</span>
+          <span id="goScore" class="font-arcade font-bold text-white">3,420</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Coins Collected:</span>
+          <span id="goCoins" class="font-arcade font-bold text-amber-300">+85 🪙</span>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-2.5 pt-2">
+        <button onclick="Game.restartLevel()" class="btn-arcade flex-1 py-3.5 px-4 rounded-xl bg-gradient-to-r from-rose-600 to-red-500 text-white font-arcade font-black text-sm">
+          ↻ RETRY LEVEL
+        </button>
+        <button onclick="UI.openModal('modalShop')" class="btn-arcade py-3.5 px-4 rounded-xl bg-slate-900 border border-amber-400/50 text-amber-300 font-arcade font-bold text-xs">
+          🔫 UPGRADE
+        </button>
+        <button onclick="Game.quitToMenu()" class="btn-arcade py-3.5 px-4 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 font-arcade font-bold text-xs">
+          MENU
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- CLEAN, STRICTLY VERIFIED JAVASCRIPT ENGINE                -->
+  <!-- ========================================================= -->
+  <script>
+    'use strict';
+
+    /**
+     * 1. GAME CONFIGURATION & DATABASES
+     */
+    const CONFIG = {
+      SAVE_KEY: 'mk_ultimate_2_100lvl_v2',
+      MAX_HEARTS: 5,
+      MAX_CAMPAIGN_LEVEL: 100,
+      DANGER_LINE_RATIO: 0.86,
+      MAX_WEAPON_UPGRADE: 10
+    };
+
+    const MOSQUITO_TYPES = {
+      normal: {
+        id: 'normal', name: 'Normal Mosquito', color: '#94a3b8', glow: '#38bdf8',
+        hp: 20, speed: 1.35, radius: 17, coins: 12, score: 60, unlockLevel: 1
+      },
+      fast: {
+        id: 'fast', name: 'Fast Mosquito', color: '#22d3ee', glow: '#00f3ff',
+        hp: 18, speed: 2.35, radius: 14, coins: 18, score: 110, unlockLevel: 2
+      },
+      poison: {
+        id: 'poison', name: 'Poison Mosquito', color: '#4ade80', glow: '#39ff14',
+        hp: 34, speed: 1.55, radius: 18, coins: 25, score: 150, unlockLevel: 4, poisonDamage: 2
+      },
+      golden: {
+        id: 'golden', name: 'Golden Mosquito', color: '#facc15', glow: '#ffd700',
+        hp: 30, speed: 2.25, radius: 16, coins: 75, score: 300, unlockLevel: 6
+      },
+      armored: {
+        id: 'armored', name: 'Armored Mosquito', color: '#cbd5e1', glow: '#94a3b8',
+        hp: 85, speed: 1.1, radius: 22, coins: 40, score: 220, unlockLevel: 9, armor: true
+      },
+      invisible: {
+        id: 'invisible', name: 'Invisible Mosquito', color: '#c084fc', glow: '#a855f7',
+        hp: 30, speed: 1.9, radius: 16, coins: 35, score: 210, unlockLevel: 13, stealth: true
+      },
+      explosive: {
+        id: 'explosive', name: 'Explosive Mosquito', color: '#fb923c', glow: '#ff5500',
+        hp: 26, speed: 1.75, radius: 19, coins: 32, score: 190, unlockLevel: 18, explosive: true
+      },
+      giant: {
+        id: 'giant', name: 'Giant Mosquito', color: '#f43f5e', glow: '#ff1e42',
+        hp: 150, speed: 0.95, radius: 30, coins: 65, score: 380, unlockLevel: 24
+      },
+      diamond: {
+        id: 'diamond', name: 'Diamond Mosquito', color: '#67e8f9', glow: '#ffffff',
+        hp: 55, speed: 2.5, radius: 16, coins: 160, score: 650, unlockLevel: 32
+      },
+      legendary: {
+        id: 'legendary', name: 'Legendary Mosquito', color: '#e879f9', glow: '#ff00ff',
+        hp: 210, speed: 2.1, radius: 25, coins: 260, score: 1000, unlockLevel: 45
+      }
+    };
+
+    // 20 Unique Bosses for Levels 5, 10, 15 ... up to Level 100
+    const BOSS_ROSTER = [
+      { level: 5, name: 'CRIMSON MOSQUITO', subtitle: 'Sector 1 Warden • Blood-Wing Mutant', primary: '#ff1e42', secondary: '#ff758f', baseHp: 850, speed: 1.8, radius: 54, pattern: 'sine_volley', reward: 500, icon: '🦟' },
+      { level: 10, name: 'SHADOW QUEEN', subtitle: 'Phantom Matriarch of the Dark Wing', primary: '#a855f7', secondary: '#38bdf8', baseHp: 1750, speed: 2.1, radius: 58, pattern: 'blink_swarm', reward: 1000, icon: '👑' },
+      { level: 15, name: 'TOXIC OVERLORD', subtitle: 'Bio-Hazard Plague Colossus', primary: '#39ff14', secondary: '#a3e635', baseHp: 3000, speed: 1.7, radius: 64, pattern: 'acid_nova', reward: 1600, icon: '☣️' },
+      { level: 20, name: 'CYBER MOSQUITO', subtitle: 'Sector 1 Finale • Augmented Mecha-Stinger', primary: '#00f3ff', secondary: '#facc15', baseHp: 4600, speed: 2.3, radius: 62, pattern: 'figure8_laser', reward: 2400, icon: '🤖' },
+      { level: 25, name: 'ANCIENT BLOOD LORD', subtitle: 'Primeval Vampiric Sovereign', primary: '#dc2626', secondary: '#ffd700', baseHp: 6800, speed: 2.2, radius: 68, pattern: 'omega_storm', reward: 3400, icon: '🧛' },
+      { level: 30, name: 'PHANTOM MATRIARCH', subtitle: 'Spectral Hive Commander', primary: '#c084fc', secondary: '#e879f9', baseHp: 9500, speed: 2.4, radius: 64, pattern: 'blink_swarm', reward: 4500, icon: '👻' },
+      { level: 35, name: 'BIO-HAZARD TITAN', subtitle: 'Mutagenic Core Behemoth', primary: '#22c55e', secondary: '#fef08a', baseHp: 12800, speed: 1.9, radius: 74, pattern: 'acid_nova', reward: 5800, icon: '🧪' },
+      { level: 40, name: 'NEON ARACHNID-V', subtitle: 'Sector 2 Finale • Cybernetic Predator', primary: '#06b6d4', secondary: '#f43f5e', baseHp: 16800, speed: 2.5, radius: 70, pattern: 'figure8_laser', reward: 7200, icon: '🕷️' },
+      { level: 45, name: 'ABYSSAL DREADWING', subtitle: 'Deep-Lab Shadow Horror', primary: '#6366f1', secondary: '#38bdf8', baseHp: 21500, speed: 2.4, radius: 72, pattern: 'sine_volley', reward: 8800, icon: '🦇' },
+      { level: 50, name: 'OMEGA HIVE SOVEREIGN', subtitle: 'Mid-Campaign Apex Overlord', primary: '#f59e0b', secondary: '#ef4444', baseHp: 27000, speed: 2.4, radius: 76, pattern: 'omega_storm', reward: 11000, icon: '🐝' },
+      { level: 55, name: 'VOID STALKER', subtitle: 'Dimensional Rift Parasite', primary: '#8b5cf6', secondary: '#00f3ff', baseHp: 33500, speed: 2.6, radius: 66, pattern: 'blink_swarm', reward: 13000, icon: '🌀' },
+      { level: 60, name: 'PLASMA BEHEMOTH', subtitle: 'Sector 3 Finale • Ionized Dreadnought', primary: '#ec4899', secondary: '#fde047', baseHp: 41000, speed: 2.2, radius: 78, pattern: 'figure8_laser', reward: 15500, icon: '🔮' },
+      { level: 65, name: 'PLAGUE MONARCH', subtitle: 'Virulent Swarm Emperor', primary: '#84cc16', secondary: '#10b981', baseHp: 49500, speed: 2.3, radius: 74, pattern: 'acid_nova', reward: 18000, icon: '🦠' },
+      { level: 70, name: 'MECHA-SWARM PRIME', subtitle: 'Orbital Defense Hive AI', primary: '#38bdf8', secondary: '#ffffff', baseHp: 59000, speed: 2.6, radius: 76, pattern: 'figure8_laser', reward: 21000, icon: '🛸' },
+      { level: 75, name: 'INFERNAL BLOODFANG', subtitle: 'Hellfire Crimson Devourer', primary: '#f97316', secondary: '#ff1e42', baseHp: 70000, speed: 2.5, radius: 78, pattern: 'sine_volley', reward: 24500, icon: '🔥' },
+      { level: 80, name: 'CHRONOS PARASITE', subtitle: 'Sector 4 Finale • Temporal Anomaly', primary: '#14b8a6', secondary: '#a855f7', baseHp: 83000, speed: 2.7, radius: 74, pattern: 'blink_swarm', reward: 28500, icon: '⏳' },
+      { level: 85, name: 'DARK MATTER EMPRESS', subtitle: 'Singularity Brood Queen', primary: '#d946ef', secondary: '#67e8f9', baseHp: 98000, speed: 2.6, radius: 80, pattern: 'omega_storm', reward: 33000, icon: '🌌' },
+      { level: 90, name: 'APOCALYPSE GOLIATH', subtitle: 'Cataclysmic Bio-Titan', primary: '#e11d48', secondary: '#fb923c', baseHp: 115000, speed: 2.4, radius: 84, pattern: 'acid_nova', reward: 38000, icon: '☄️' },
+      { level: 95, name: 'NIGHTMARE APEX', subtitle: 'Harbinger of the Final Sector', primary: '#9333ea', secondary: '#ff1e42', baseHp: 136000, speed: 2.8, radius: 82, pattern: 'blink_swarm', reward: 45000, icon: '💀' },
+      { level: 100, name: 'THE ETERNAL MOSQUITO GOD', subtitle: 'FINAL BOSS • Supreme Deity of the Swarm', primary: '#ffd700', secondary: '#ff1e42', baseHp: 175000, speed: 2.9, radius: 90, pattern: 'omega_storm', reward: 50000, icon: '👁️' }
+    ];
+
+    const WEAPONS = [
+      { id: 'basic_sandal', name: 'Basic Sandal', icon: '🩴', cost: 0, baseDamage: 20, baseRadius: 46, baseCrit: 0.10, color: '#38bdf8', effect: 'slap', desc: 'Standard issue lab footwear. Reliable swatting strike.' },
+      { id: 'electric_bat', name: 'Electric Bat', icon: '🎾', cost: 250, baseDamage: 34, baseRadius: 60, baseCrit: 0.14, color: '#00f3ff', effect: 'electric', desc: 'High-voltage mesh racket discharging neon lightning arcs.' },
+      { id: 'super_slipper', name: 'Super Slipper', icon: '👟', cost: 600, baseDamage: 52, baseRadius: 68, baseCrit: 0.16, color: '#a855f7', effect: 'shockwave', desc: 'Reinforced kinetic sole delivering concussive shockwaves.' },
+      { id: 'golden_slipper', name: 'Golden Slipper', icon: '👑', cost: 1200, baseDamage: 75, baseRadius: 76, baseCrit: 0.22, color: '#ffd700', effect: 'gold', desc: 'Luxurious gold-plated sole. Grants +25% bonus coins on kills.' },
+      { id: 'laser_blaster', name: 'Laser Blaster', icon: '🔫', cost: 2200, baseDamage: 108, baseRadius: 72, baseCrit: 0.25, color: '#ff1e42', effect: 'laser', desc: 'Focused crimson photon emitter piercing armored shells.' },
+      { id: 'thunder_hammer', name: 'Thunder Hammer', icon: '🔨', cost: 3600, baseDamage: 150, baseRadius: 98, baseCrit: 0.22, color: '#60a5fa', effect: 'thunder', desc: 'Heavy electromagnetic hammer unleashing massive area blasts.' },
+      { id: 'plasma_blaster', name: 'Plasma Blaster', icon: '🔮', cost: 5500, baseDamage: 205, baseRadius: 92, baseCrit: 0.28, color: '#e879f9', effect: 'plasma', desc: 'Superheated ionized plasma bursts vaporizing swarms.' },
+      { id: 'ice_blaster', name: 'Ice Blaster', icon: '❄️', cost: 8000, baseDamage: 265, baseRadius: 100, baseCrit: 0.30, color: '#67e8f9', effect: 'ice', desc: 'Cryogenic emitter that chills and slows enemies hit.' },
+      { id: 'fire_blaster', name: 'Fire Blaster', icon: '🔥', cost: 11500, baseDamage: 340, baseRadius: 108, baseCrit: 0.34, color: '#fb923c', effect: 'fire', desc: 'Incendiary thermal cannon scorching bosses and swarms.' },
+      { id: 'ultimate_weapon', name: 'Omega Annihilator', icon: '⚛️', cost: 18000, baseDamage: 500, baseRadius: 135, baseCrit: 0.42, color: '#39ff14', effect: 'omega', desc: 'Quantum singularity weapon with unmatched devastation.' }
+    ];
+
+    const POWERUP_TYPES = [
+      { id: 'doubleCoins', name: '2X COINS', icon: '🪙', color: '#ffd700', duration: 10 },
+      { id: 'doubleDamage', name: '2X DAMAGE', icon: '⚔️', color: '#ff1e42', duration: 9 },
+      { id: 'slowMotion', name: 'SLOW MOTION', icon: '⏳', color: '#38bdf8', duration: 8 },
+      { id: 'freezeAll', name: 'CRYO FREEZE', icon: '🧊', color: '#67e8f9', duration: 5 },
+      { id: 'extraLife', name: '+1 HEART', icon: '❤️', color: '#f43f5e', duration: 0 },
+      { id: 'shield', name: 'BIO-SHIELD', icon: '🛡️', color: '#00f3ff', duration: 10 },
+      { id: 'megaCombo', name: 'MEGA COMBO +10', icon: '🔥', color: '#e879f9', duration: 0 },
+      { id: 'timeBonus', name: '+15s / BONUS', icon: '⏱️', color: '#39ff14', duration: 0 }
+    ];
+
+    const GAME_MODES = [
+      { id: 'classic', name: '100-LEVEL CAMPAIGN', icon: '🧬', desc: 'Conquer all 100 Sectors and defeat 20 Apex Bosses up to The Eternal Mosquito God.', rewardText: '100-Level Progression' },
+      { id: 'timeAttack', name: 'TIME ATTACK (60s)', icon: '⏱️', desc: '60-second blitz! Rapid swarms and Time Bonus orbs to maximize score & coins.', rewardText: '1.3x Coin Bonus' },
+      { id: 'survival', name: 'SURVIVAL PROTOCOL', icon: '💀', desc: 'Endless escalating waves. Survive as long as possible before breach.', rewardText: '1.5x Coin Bonus' },
+      { id: 'bossBattle', name: 'BOSS RUSH (20 BOSSES)', icon: '👹', desc: 'Battle all 20 Apex Bosses consecutively with escalating rewards!', rewardText: 'Massive Boss Bounties' },
+      { id: 'endless', name: 'ENDLESS SWARM', icon: '♾️', desc: 'Infinite post-100 scaling waves with relentless mutations.', rewardText: 'Infinite Escalation' },
+      { id: 'hardcore', name: 'HARDCORE NIGHTMARE', icon: '🔥', desc: '1 Heart only! High speed enemies, 3.0x coin rewards.', rewardText: '3.0x Coin Multiplier' },
+      { id: 'challenge', name: 'GOLDEN & DIAMOND RUSH', icon: '💎', desc: 'Ultra-fast Golden & Diamond mosquitoes only! High precision reward.', rewardText: '2.5x Coin Bounty' }
+    ];
+
+    const ACHIEVEMENTS_LIST = [
+      { id: 'first_kill', name: 'First Blood', desc: 'Eliminate your first mosquito.', reward: 100, icon: '🩸', check: s => s.totalKills >= 1 },
+      { id: 'kills_100', name: 'Exterminator', desc: 'Reach 100 total kills.', reward: 300, icon: '🦟', check: s => s.totalKills >= 100 },
+      { id: 'kills_500', name: 'Swarm Butcher', desc: 'Reach 500 total kills.', reward: 800, icon: '⚔️', check: s => s.totalKills >= 500 },
+      { id: 'kills_1000', name: 'Apex Eradicator', desc: 'Reach 1,000 total kills.', reward: 2000, icon: '💀', check: s => s.totalKills >= 1000 },
+      { id: 'first_boss', name: 'Boss Slayer', desc: 'Defeat your first Sector Boss.', reward: 500, icon: '👑', check: s => s.bossesDefeated >= 1 },
+      { id: 'boss_hunter', name: 'Boss Hunter', desc: 'Defeat 5 Sector Bosses.', reward: 1500, icon: '👹', check: s => s.bossesDefeated >= 5 },
+      { id: 'combo_master', name: 'Combo Master', desc: 'Reach a 25x hit combo.', reward: 600, icon: '🔥', check: s => s.maxCombo >= 25 },
+      { id: 'coin_collector', name: 'Coin Collector', desc: 'Collect 5,000 lifetime coins.', reward: 1000, icon: '🪙', check: s => s.lifetimeCoins >= 5000 },
+      { id: 'weapon_master', name: 'Weapon Master', desc: 'Unlock at least 5 weapons.', reward: 1200, icon: '🔫', check: s => s.unlockedWeapons.length >= 5 },
+      { id: 'level_master', name: 'Sector Veteran', desc: 'Unlock Level 25 in Campaign.', reward: 2500, icon: '🏆', check: s => s.unlockedLevel >= 25 },
+      { id: 'campaign_100', name: '100 Level Legend', desc: 'Defeat Level 100: The Eternal Mosquito God!', reward: 25000, icon: '🌟', check: s => s.campaignCompleted === true }
+    ];
+
+    const DAILY_REWARDS_SCHEDULE = [
+      { day: 1, coins: 150, label: 'Day 1' },
+      { day: 2, coins: 300, label: 'Day 2' },
+      { day: 3, coins: 500, label: 'Day 3' },
+      { day: 4, coins: 750, label: 'Day 4' },
+      { day: 5, coins: 1100, label: 'Day 5' },
+      { day: 6, coins: 1600, label: 'Day 6' },
+      { day: 7, coins: 3000, label: 'Day 7 MEGA' }
+    ];
+
+    /**
+     * 2. SAVE SYSTEM (localStorage with safe fallback)
+     */
+    const SaveSystem = {
+      data: null,
+
+      defaultData() {
+        return {
+          playerName: 'AGENT_ZERO',
+          coins: 200,
+          lifetimeCoins: 200,
+          currentLevel: 1,
+          unlockedLevel: 1,
+          campaignCompleted: false,
+          highestScore: 0,
+          totalKills: 0,
+          bossesDefeated: 0,
+          maxCombo: 0,
+          gamesPlayed: 0,
+          unlockedWeapons: ['basic_sandal'],
+          equippedWeapon: 'basic_sandal',
+          weaponLevels: { basic_sandal: 1 },
+          achievements: [],
+          daily: {
+            streakDay: 1,
+            lastClaimDate: '',
+            history: ['Welcome supply +200 coins granted.'],
+            challengeDate: '',
+            challengeKills: 0,
+            challengeClaimed: false
+          },
+          settings: {
+            musicVol: 0.6,
+            sfxVol: 0.8,
+            muted: false,
+            graphics: 'high',
+            vibration: true,
+            perfMode: false
+          }
+        };
+      },
+
+      load() {
+        try {
+          const raw = localStorage.getItem(CONFIG.SAVE_KEY);
+          if (!raw) {
+            this.data = this.defaultData();
+            this.save();
+            return;
+          }
+          const parsed = JSON.parse(raw);
+          const def = this.defaultData();
+          this.data = {
+            ...def,
+            ...parsed,
+            weaponLevels: { ...def.weaponLevels, ...(parsed.weaponLevels || {}) },
+            daily: { ...def.daily, ...(parsed.daily || {}) },
+            settings: { ...def.settings, ...(parsed.settings || {}) }
+          };
+          if (!Array.isArray(this.data.unlockedWeapons) || this.data.unlockedWeapons.length === 0) {
+            this.data.unlockedWeapons = ['basic_sandal'];
+          }
+          if (!Array.isArray(this.data.achievements)) {
+            this.data.achievements = [];
+          }
+        } catch (e) {
+          this.data = this.defaultData();
+          this.save();
+        }
+      },
+
+      save() {
+        try {
+          localStorage.setItem(CONFIG.SAVE_KEY, JSON.stringify(this.data));
+        } catch (e) {}
+      },
+
+      addCoins(amount) {
+        const val = Math.max(0, Math.round(amount));
+        this.data.coins += val;
+        this.data.lifetimeCoins += val;
+        this.save();
+        Achievements.checkAll();
+      },
+
+      resetAll() {
+        try { localStorage.removeItem(CONFIG.SAVE_KEY); } catch (e) {}
+        this.data = this.defaultData();
+        this.save();
+        document.getElementById('resetStep2').classList.add('hidden');
+        document.getElementById('resetStep1').classList.remove('hidden');
+        UI.refreshAll();
+        UI.showToast('DATA RESET', 'All progress restored to factory defaults.', '🔄');
+      }
+    };
+
+    /**
+     * 3. WEB AUDIO API SYNTHESIZER SOUND SYSTEM
+     */
+    const AudioEngine = {
+      ctx: null,
+      bgmTimer: null,
+      bgmStep: 0,
+      isBossMusic: false,
+
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) this.ctx = new AudioCtx();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume().catch(() => {});
+        }
+      },
+
+      toggleMute() {
+        SaveSystem.data.settings.muted = !SaveSystem.data.settings.muted;
+        SaveSystem.save();
+        UI.updateMuteButton();
+        if (SaveSystem.data.settings.muted) {
+          this.stopMusic();
+        } else if (Game.state === 'playing') {
+          this.startMusic(this.isBossMusic);
+        }
+      },
+
+      playTone(freq, type, duration, volMult = 1, slideTo = null) {
+        if (!SaveSystem.data || SaveSystem.data.settings.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        const sfxVol = SaveSystem.data.settings.sfxVol;
+        if (sfxVol <= 0.01) return;
+
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          const now = this.ctx.currentTime;
+          osc.frequency.setValueAtTime(freq, now);
+          if (slideTo) {
+            osc.frequency.exponentialRampToValueAtTime(Math.max(20, slideTo), now + duration);
+          }
+          const vol = Math.min(0.35, 0.16 * sfxVol * volMult);
+          gain.gain.setValueAtTime(vol, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + duration);
+        } catch (e) {}
+      },
+
+      playClick() { this.playTone(720, 'sine', 0.06, 0.6, 960); },
+      playHit(effect = 'slap', isCrit = false) {
+        if (effect === 'electric' || effect === 'thunder') {
+          this.playTone(isCrit ? 1150 : 780, 'sawtooth', 0.13, 0.95, 140);
+        } else if (effect === 'laser' || effect === 'plasma') {
+          this.playTone(1350, 'square', 0.11, 0.85, 220);
+        } else if (effect === 'fire' || effect === 'omega') {
+          this.playTone(250, 'sawtooth', 0.2, 1.0, 48);
+        } else if (effect === 'ice') {
+          this.playTone(1450, 'triangle', 0.14, 0.85, 580);
+        } else {
+          this.playTone(isCrit ? 520 : 320, 'triangle', 0.1, 0.95, 85);
+        }
+      },
+      playBuzz() { this.playTone(240 + Math.random() * 70, 'sawtooth', 0.12, 0.22, 300); },
+      playCoin() {
+        this.playTone(987, 'sine', 0.07, 0.65);
+        setTimeout(() => this.playTone(1318, 'sine', 0.12, 0.65), 60);
+      },
+      playPowerup() {
+        this.playTone(440, 'triangle', 0.09, 0.8);
+        setTimeout(() => this.playTone(660, 'triangle', 0.09, 0.8), 65);
+        setTimeout(() => this.playTone(880, 'triangle', 0.16, 0.9), 130);
+      },
+      playPlayerDamage() { this.playTone(145, 'sawtooth', 0.28, 1.2, 42); },
+      playBossWarning() {
+        for (let i = 0; i < 3; i++) {
+          setTimeout(() => this.playTone(420, 'sawtooth', 0.24, 1.0, 175), i * 340);
+        }
+      },
+      playLevelComplete() {
+        [523.25, 659.25, 783.99, 1046.5].forEach((n, i) => {
+          setTimeout(() => this.playTone(n, 'triangle', 0.2, 0.85), i * 105);
+        });
+      },
+      playGameOver() {
+        [392, 349.23, 311.13, 220].forEach((n, i) => {
+          setTimeout(() => this.playTone(n, 'sawtooth', 0.24, 0.8), i * 165);
+        });
+      },
+
+      startMusic(bossMode = false) {
+        this.isBossMusic = bossMode;
+        this.stopMusic();
+        if (!SaveSystem.data || SaveSystem.data.settings.muted) return;
+        this.init();
+
+        const interval = bossMode ? 200 : 290;
+        const normalScale = [110, 110, 130.81, 146.83, 110, 164.81, 146.83, 130.81];
+        const bossScale = [82.41, 82.41, 98.0, 87.31, 82.41, 110.0, 98.0, 73.42];
+
+        this.bgmTimer = setInterval(() => {
+          if (SaveSystem.data.settings.muted || Game.state !== 'playing') return;
+          const mVol = SaveSystem.data.settings.musicVol;
+          if (mVol <= 0.01 || !this.ctx) return;
+
+          const seq = this.isBossMusic ? bossScale : normalScale;
+          const freq = seq[this.bgmStep % seq.length];
+          this.bgmStep++;
+
+          try {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = this.isBossMusic ? 'sawtooth' : 'triangle';
+            const now = this.ctx.currentTime;
+            osc.frequency.setValueAtTime(freq, now);
+            const vol = (this.isBossMusic ? 0.07 : 0.048) * mVol;
+            gain.gain.setValueAtTime(vol, now);
+            gain.gain.exponentialRampToValueAtTime(0.0008, now + (interval / 1000) * 0.9);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + (interval / 1000) * 0.92);
+          } catch (e) {}
+        }, interval);
+      },
+
+      stopMusic() {
+        if (this.bgmTimer) {
+          clearInterval(this.bgmTimer);
+          this.bgmTimer = null;
+        }
+      }
+    };
+
+    /**
+     * 4. ACHIEVEMENTS & DAILY REWARDS
+     */
+    const Achievements = {
+      checkAll() {
+        const s = SaveSystem.data;
+        let changed = false;
+        ACHIEVEMENTS_LIST.forEach(ach => {
+          if (!s.achievements.includes(ach.id) && ach.check(s)) {
+            s.achievements.push(ach.id);
+            s.coins += ach.reward;
+            s.lifetimeCoins += ach.reward;
+            changed = true;
+            AudioEngine.playPowerup();
+            UI.showToast(`TROPHY: ${ach.name}`, `${ach.desc} (+${ach.reward} 🪙)`, ach.icon);
+          }
+        });
+        if (changed) {
+          SaveSystem.save();
+          UI.updateTopCounters();
+        }
+      }
+    };
+
+    const DailySystem = {
+      getTodayStr() {
+        return new Date().toISOString().slice(0, 10);
+      },
+      canClaimToday() {
+        return SaveSystem.data.daily.lastClaimDate !== this.getTodayStr();
+      },
+      claimDaily(dayIndex) {
+        if (!this.canClaimToday()) return;
+        const d = SaveSystem.data.daily;
+        if (dayIndex !== d.streakDay) return;
+
+        const rewardObj = DAILY_REWARDS_SCHEDULE[dayIndex - 1];
+        SaveSystem.addCoins(rewardObj.coins);
+        d.lastClaimDate = this.getTodayStr();
+        d.history.unshift(`${this.getTodayStr()}: Claimed ${rewardObj.label} (+${rewardObj.coins} coins)`);
+        if (d.history.length > 12) d.history.pop();
+        d.streakDay = d.streakDay >= 7 ? 1 : d.streakDay + 1;
+        SaveSystem.save();
+
+        AudioEngine.playLevelComplete();
+        UI.showToast('DAILY REWARD CLAIMED!', `+${rewardObj.coins} Coins added!`, '🎁');
+        UI.renderDailyModal();
+        UI.updateTopCounters();
+      },
+      recordKill() {
+        const d = SaveSystem.data.daily;
+        const today = this.getTodayStr();
+        if (d.challengeDate !== today) {
+          d.challengeDate = today;
+          d.challengeKills = 0;
+          d.challengeClaimed = false;
+        }
+        if (!d.challengeClaimed && d.challengeKills < 50) {
+          d.challengeKills++;
+          if (d.challengeKills === 50) {
+            UI.showToast('DAILY BOUNTY READY!', '50 Kills complete! Claim 300 Coins in Daily tab.', '⚡');
+          }
+        }
+      },
+      claimChallenge() {
+        const d = SaveSystem.data.daily;
+        const today = this.getTodayStr();
+        if (d.challengeDate === today && d.challengeKills >= 50 && !d.challengeClaimed) {
+          d.challengeClaimed = true;
+          SaveSystem.addCoins(300);
+          d.history.unshift(`${today}: Daily Bounty Completed (+300 coins)`);
+          SaveSystem.save();
+          AudioEngine.playCoin();
+          UI.showToast('BOUNTY CLAIMED!', '+300 Coins awarded!', '🪙');
+          UI.renderDailyModal();
+          UI.updateTopCounters();
+        }
+      }
+    };
+
+    /**
+     * 5. MAIN GAME ENGINE
+     */
+    const Game = {
+      canvas: null,
+      ctx: null,
+      width: 0,
+      height: 0,
+      state: 'menu',
+      mode: 'classic',
+      level: 1,
+
+      killsThisLevel: 0,
+      requiredKills: 10,
+      levelScore: 0,
+      levelCoins: 0,
+      timeLeft: 60,
+
+      hearts: 5,
+      maxHearts: 5,
+      combo: 0,
+      maxSessionCombo: 0,
+      comboTimer: 0,
+
+      powerups: {
+        doubleCoins: 0,
+        doubleDamage: 0,
+        slowMotion: 0,
+        freezeAll: 0,
+        shield: 0
+      },
+
+      mosquitoes: [],
+      boss: null,
+      bossProjectiles: [],
+      powerupOrbs: [],
+      particles: [],
+      floatingTexts: [],
+      weaponSlashes: [],
+      bgParticles: [],
+
+      spawnTimer: 0,
+      powerupSpawnTimer: 8,
+      shakeTime: 0,
+      shakeIntensity: 0,
+      lastFrameTime: 0,
+      bossRushIndex: 1,
+      bossIntroTimer: null,
+
+      init() {
+        this.canvas = document.getElementById('gameCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+
+        this.bgParticles = [];
+        for (let i = 0; i < 38; i++) {
+          this.bgParticles.push({
+            x: Math.random() * this.width,
+            y: Math.random() * this.height,
+            r: 1.5 + Math.random() * 3.5,
+            vy: -0.25 - Math.random() * 0.55,
+            color: Math.random() > 0.35 ? 'rgba(0, 243, 255, 0.22)' : 'rgba(255, 30, 66, 0.2)'
+          });
+        }
+
+        const onPointerDown = (e) => {
+          if (this.state !== 'playing') return;
+          e.preventDefault();
+          const rect = this.canvas.getBoundingClientRect();
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+          this.handleStrike(clientX - rect.left, clientY - rect.top);
+        };
+
+        this.canvas.addEventListener('mousedown', onPointerDown);
+        this.canvas.addEventListener('touchstart', onPointerDown, { passive: false });
+
+        this.lastFrameTime = performance.now();
+        requestAnimationFrame((ts) => this.loop(ts));
+      },
+
+      resize() {
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+      },
+
+      getEquippedWeaponStats() {
+        const wId = SaveSystem.data.equippedWeapon;
+        const w = WEAPONS.find(item => item.id === wId) || WEAPONS[0];
+        const lvl = SaveSystem.data.weaponLevels[w.id] || 1;
+        const mult = 1 + (lvl - 1) * 0.30;
+        return {
+          ...w,
+          level: lvl,
+          damage: Math.round(w.baseDamage * mult),
+          radius: Math.round(w.baseRadius + (lvl - 1) * 4),
+          critChance: Math.min(0.75, w.baseCrit + (lvl - 1) * 0.025)
+        };
+      },
+
+      isBossLevel(lvl) {
+        return lvl > 0 && lvl % 5 === 0;
+      },
+
+      getBossForLevel(lvl) {
+        const idx = Math.floor(lvl / 5) - 1;
+        if (idx >= 0 && idx < BOSS_ROSTER.length) {
+          return { ...BOSS_ROSTER[idx] };
+        }
+        const tier = idx + 1;
+        return {
+          level: lvl,
+          name: `APEX LEVIATHAN MK.${tier}`,
+          subtitle: `Transcendent Tier-${tier} Swarm Deity`,
+          primary: '#ffd700',
+          secondary: '#ff1e42',
+          baseHp: Math.round(175000 * Math.pow(1.22, Math.max(1, idx - 19))),
+          speed: 2.9,
+          radius: 90,
+          pattern: 'omega_storm',
+          reward: 50000 + Math.max(1, idx - 19) * 15000,
+          icon: '👁️'
+        };
+      },
+
+      startMode(mode = 'classic', startLevel = 1) {
+        AudioEngine.init();
+        AudioEngine.playClick();
+        UI.closeModals();
+        document.getElementById('screenMainMenu').classList.add('hidden');
+        document.getElementById('overlayLevelComplete').classList.add('hidden');
+        document.getElementById('overlayCampaignVictory').classList.add('hidden');
+        document.getElementById('overlayGameOver').classList.add('hidden');
+        document.getElementById('overlayPause').classList.add('hidden');
+
+        this.mode = mode;
+        this.level = mode === 'endless' ? Math.max(1, startLevel) : Math.min(CONFIG.MAX_CAMPAIGN_LEVEL, Math.max(1, startLevel));
+        this.bossRushIndex = 1;
+        const startHearts = (mode === 'hardcore') ? 1 : CONFIG.MAX_HEARTS;
+        this.hearts = startHearts;
+        this.maxHearts = startHearts;
+        this.levelScore = 0;
+        this.levelCoins = 0;
+        this.combo = 0;
+        this.maxSessionCombo = 0;
+        this.timeLeft = 60;
+
+        SaveSystem.data.gamesPlayed++;
+        SaveSystem.save();
+
+        this.setupLevel(this.level);
+      },
+
+      setupLevel(lvl) {
+        if (this.bossIntroTimer) {
+          clearTimeout(this.bossIntroTimer);
+          this.bossIntroTimer = null;
+        }
+
+        this.level = lvl;
+        this.killsThisLevel = 0;
+        this.mosquitoes = [];
+        this.boss = null;
+        this.bossProjectiles = [];
+        this.powerupOrbs = [];
+        this.weaponSlashes = [];
+        this.powerups = { doubleCoins: 0, doubleDamage: 0, slowMotion: 0, freezeAll: 0, shield: 0 };
+
+        const isBoss = (this.mode === 'bossBattle') || ((this.mode === 'classic' || this.mode === 'hardcore') && this.isBossLevel(lvl));
+
+        if (isBoss) {
+          const effectiveBossLvl = this.mode === 'bossBattle' ? this.bossRushIndex * 5 : lvl;
+          const bossTemplate = this.getBossForLevel(effectiveBossLvl);
+          const modeHpMult = this.mode === 'hardcore' ? 1.25 : 1.0;
+          const maxHp = Math.round(bossTemplate.baseHp * modeHpMult);
+
+          this.boss = {
+            ...bossTemplate,
+            hp: maxHp,
+            maxHp: maxHp,
+            x: this.width / 2,
+            y: -90,
+            targetY: Math.min(185, this.height * 0.24),
+            vx: bossTemplate.speed * 105,
+            vy: 0,
+            phaseTime: 0,
+            wingPhase: 0,
+            attackTimer: 2.2,
+            hitFlash: 0
+          };
+
+          this.state = 'boss_intro';
+          AudioEngine.playBossWarning();
+          AudioEngine.startMusic(true);
+
+          document.getElementById('bossIntroIcon').textContent = this.boss.icon;
+          document.getElementById('bossIntroName').textContent = this.boss.name;
+          document.getElementById('bossIntroSubtitle').textContent = this.boss.subtitle;
+          document.getElementById('bossIntroHp').textContent = `HP: ${maxHp.toLocaleString()}`;
+          document.getElementById('bossIntroReward').textContent = `BOUNTY: 🪙 ${this.boss.reward.toLocaleString()}`;
+
+          const introEl = document.getElementById('overlayBossIntro');
+          introEl.classList.remove('hidden');
+          introEl.classList.add('flex');
+
+          this.bossIntroTimer = setTimeout(() => {
+            introEl.classList.add('hidden');
+            introEl.classList.remove('flex');
+            if (this.state === 'boss_intro') {
+              this.state = 'playing';
+            }
+          }, 2100);
+        } else {
+          this.state = 'playing';
+          AudioEngine.startMusic(false);
+          if (this.mode === 'classic' || this.mode === 'hardcore') {
+            this.requiredKills = 10 + lvl * 2;
+          } else if (this.mode === 'timeAttack') {
+            this.requiredKills = 9999;
+          } else {
+            this.requiredKills = 15 + lvl * 3;
+          }
+        }
+
+        const hud = document.getElementById('gameHUD');
+        hud.classList.remove('hidden');
+        hud.classList.add('flex');
+        this.updateHUD();
+      },
+
+      pause() {
+        if (this.state !== 'playing') return;
+        AudioEngine.playClick();
+        this.state = 'paused';
+        document.getElementById('pauseStatsLine').textContent = `LEVEL ${this.level} • SCORE ${this.levelScore.toLocaleString()}`;
+        const el = document.getElementById('overlayPause');
+        el.classList.remove('hidden');
+        el.classList.add('flex');
+      },
+
+      resume() {
+        AudioEngine.playClick();
+        document.getElementById('overlayPause').classList.add('hidden');
+        document.getElementById('overlayPause').classList.remove('flex');
+        this.state = 'playing';
+        this.lastFrameTime = performance.now();
+      },
+
+      restartLevel() {
+        AudioEngine.playClick();
+        document.getElementById('overlayPause').classList.add('hidden');
+        document.getElementById('overlayPause').classList.remove('flex');
+        document.getElementById('overlayGameOver').classList.add('hidden');
+        document.getElementById('overlayGameOver').classList.remove('flex');
+        this.hearts = this.maxHearts;
+        this.combo = 0;
+        if (this.mode === 'timeAttack') this.timeLeft = 60;
+        this.setupLevel(this.level);
+      },
+
+      nextLevel() {
+        AudioEngine.playClick();
+        document.getElementById('overlayLevelComplete').classList.add('hidden');
+        document.getElementById('overlayLevelComplete').classList.remove('flex');
+        const next = Math.min(CONFIG.MAX_CAMPAIGN_LEVEL, this.level + 1);
+        this.setupLevel(next);
+      },
+
+      quitToMenu() {
+        AudioEngine.playClick();
+        AudioEngine.stopMusic();
+        if (this.bossIntroTimer) {
+          clearTimeout(this.bossIntroTimer);
+          this.bossIntroTimer = null;
+        }
+        this.state = 'menu';
+        document.getElementById('gameHUD').classList.add('hidden');
+        document.getElementById('gameHUD').classList.remove('flex');
+        document.getElementById('overlayPause').classList.add('hidden');
+        document.getElementById('overlayLevelComplete').classList.add('hidden');
+        document.getElementById('overlayCampaignVictory').classList.add('hidden');
+        document.getElementById('overlayGameOver').classList.add('hidden');
+        document.getElementById('overlayBossIntro').classList.add('hidden');
+        document.getElementById('screenMainMenu').classList.remove('hidden');
+        UI.refreshAll();
+      },
+
+      triggerShake(intensity = 8, duration = 0.22) {
+        if (SaveSystem.data.settings.perfMode) return;
+        this.shakeIntensity = intensity;
+        this.shakeTime = duration;
+      },
+
+      triggerVibration(ms = 35) {
+        if (SaveSystem.data.settings.vibration && navigator.vibrate) {
+          try { navigator.vibrate(ms); } catch (e) {}
+        }
+      },
+
+      spawnFloatingText(x, y, text, color = '#ffffff', size = 18) {
+        this.floatingTexts.push({
+          x, y, text, color, size,
+          vy: -55,
+          alpha: 1,
+          life: 0.85
+        });
+      },
+
+      spawnParticles(x, y, color, count = 12) {
+        const qual = SaveSystem.data.settings.graphics;
+        const actualCount = qual === 'low' ? Math.max(4, Math.floor(count / 2)) : count;
+        for (let i = 0; i < actualCount; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = 50 + Math.random() * 190;
+          this.particles.push({
+            x, y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            r: 2 + Math.random() * 3.5,
+            color,
+            alpha: 1,
+            life: 0.35 + Math.random() * 0.35
+          });
+        }
+      },
+
+      spawnMosquito() {
+        let pool = [];
+        if (this.mode === 'challenge') {
+          pool = [MOSQUITO_TYPES.golden, MOSQUITO_TYPES.diamond];
+        } else {
+          Object.values(MOSQUITO_TYPES).forEach(t => {
+            if (this.level >= t.unlockLevel) pool.push(t);
+          });
+        }
+        if (pool.length === 0) pool = [MOSQUITO_TYPES.normal];
+
+        const type = pool[Math.floor(Math.random() * pool.length)];
+        const levelScale = 1 + (this.level - 1) * 0.032;
+        const modeSpeedMult = this.mode === 'hardcore' ? 1.35 : (this.mode === 'timeAttack' ? 1.2 : 1.0);
+        const hp = Math.round(type.hp * (1 + (this.level - 1) * 0.045));
+        const speed = type.speed * Math.min(2.4, levelScale) * modeSpeedMult * 68;
+
+        const margin = 45;
+        const x = margin + Math.random() * Math.max(60, this.width - margin * 2);
+
+        this.mosquitoes.push({
+          ...type,
+          x,
+          y: -30,
+          hp,
+          maxHp: hp,
+          speed,
+          vx: (Math.random() - 0.5) * 95,
+          wingPhase: Math.random() * Math.PI * 2,
+          stealthPhase: Math.random() * Math.PI * 2,
+          chillTimer: 0,
+          hitFlash: 0
+        });
+
+        if (Math.random() < 0.25) AudioEngine.playBuzz();
+      },
+
+      spawnPowerupOrb() {
+        let available = POWERUP_TYPES;
+        if (this.mode === 'hardcore') {
+          available = POWERUP_TYPES.filter(p => p.id !== 'extraLife');
+        }
+        const p = available[Math.floor(Math.random() * available.length)];
+        const x = 50 + Math.random() * Math.max(80, this.width - 100);
+        this.powerupOrbs.push({
+          ...p,
+          x,
+          y: -25,
+          vy: 78,
+          radius: 23,
+          pulse: 0
+        });
+      },
+
+      applyPowerup(orb) {
+        AudioEngine.playPowerup();
+        this.spawnParticles(orb.x, orb.y, orb.color, 18);
+        this.spawnFloatingText(orb.x, orb.y - 12, orb.name, orb.color, 20);
+
+        if (orb.id === 'extraLife') {
+          if (this.hearts < this.maxHearts) {
+            this.hearts++;
+          } else {
+            this.levelScore += 500;
+          }
+        } else if (orb.id === 'megaCombo') {
+          this.combo += 10;
+          this.comboTimer = 3.5;
+          if (this.combo > this.maxSessionCombo) this.maxSessionCombo = this.combo;
+          if (this.combo > SaveSystem.data.maxCombo) SaveSystem.data.maxCombo = this.combo;
+        } else if (orb.id === 'timeBonus') {
+          if (this.mode === 'timeAttack') {
+            this.timeLeft += 15;
+          } else {
+            const bonus = 150 + this.level * 15;
+            this.levelCoins += bonus;
+            SaveSystem.addCoins(bonus);
+          }
+        } else {
+          this.powerups[orb.id] = orb.duration;
+        }
+        this.updateHUD();
+      },
+
+      handleStrike(x, y) {
+        const weapon = this.getEquippedWeaponStats();
+        const dmgMult = this.powerups.doubleDamage > 0 ? 2 : 1;
+
+        this.weaponSlashes.push({
+          x, y,
+          radius: weapon.radius,
+          color: weapon.color,
+          effect: weapon.effect,
+          alpha: 1,
+          life: 0.24
+        });
+
+        let hitSomething = false;
+
+        // 1. Check Collectible Power-Up Orbs
+        for (let i = this.powerupOrbs.length - 1; i >= 0; i--) {
+          const orb = this.powerupOrbs[i];
+          const dist = Math.hypot(orb.x - x, orb.y - y);
+          if (dist <= weapon.radius + orb.radius) {
+            this.applyPowerup(orb);
+            this.powerupOrbs.splice(i, 1);
+            hitSomething = true;
+          }
+        }
+
+        // 2. Check Boss Projectiles (Players can shoot/swat them down!)
+        for (let i = this.bossProjectiles.length - 1; i >= 0; i--) {
+          const proj = this.bossProjectiles[i];
+          const dist = Math.hypot(proj.x - x, proj.y - y);
+          if (dist <= weapon.radius + proj.radius) {
+            this.spawnParticles(proj.x, proj.y, proj.color, 8);
+            this.spawnFloatingText(proj.x, proj.y, 'BLOCKED!', '#00f3ff', 14);
+            this.bossProjectiles.splice(i, 1);
+            hitSomething = true;
+          }
+        }
+
+        // 3. Check Boss
+        if (this.boss && this.boss.hp > 0) {
+          const dist = Math.hypot(this.boss.x - x, this.boss.y - y);
+          if (dist <= weapon.radius + this.boss.radius) {
+            hitSomething = true;
+            const isCrit = Math.random() < weapon.critChance;
+            const dmg = Math.round(weapon.damage * dmgMult * (isCrit ? 1.85 : 1));
+            this.boss.hp -= dmg;
+            this.boss.hitFlash = 0.12;
+            AudioEngine.playHit(weapon.effect, isCrit);
+            this.triggerVibration(25);
+            this.spawnParticles(x, y, isCrit ? '#ffd700' : this.boss.primary, isCrit ? 16 : 9);
+            this.spawnFloatingText(
+              this.boss.x + (Math.random() - 0.5) * 40,
+              this.boss.y - 20,
+              isCrit ? `CRIT -${dmg}!` : `-${dmg}`,
+              isCrit ? '#ffd700' : '#ff1e42',
+              isCrit ? 24 : 18
+            );
+
+            this.incrementCombo();
+
+            if (this.boss.hp <= 0) {
+              this.defeatBoss();
+              return;
+            }
+          }
+        }
+
+        // 4. Check Mosquitoes
+        for (let i = this.mosquitoes.length - 1; i >= 0; i--) {
+          const m = this.mosquitoes[i];
+          const dist = Math.hypot(m.x - x, m.y - y);
+          if (dist <= weapon.radius + m.radius) {
+            hitSomething = true;
+            const isCrit = Math.random() < weapon.critChance;
+            const dmg = Math.round(weapon.damage * dmgMult * (isCrit ? 1.85 : 1));
+            m.hp -= dmg;
+            m.hitFlash = 0.12;
+            if (weapon.effect === 'ice') m.chillTimer = 3.0;
+
+            AudioEngine.playHit(weapon.effect, isCrit);
+            this.triggerVibration(20);
+            this.spawnParticles(m.x, m.y, m.color, 8);
+
+            if (m.hp <= 0) {
+              this.killMosquito(i, isCrit);
+            } else {
+              this.spawnFloatingText(m.x, m.y - 16, `-${dmg}`, isCrit ? '#ffd700' : '#e2e8f0', 15);
+            }
+          }
+        }
+
+        if (!hitSomething) {
+          AudioEngine.playHit(weapon.effect, false);
+          this.combo = 0;
+        }
+        this.updateHUD();
+      },
+
+      incrementCombo() {
+        this.combo++;
+        this.comboTimer = 2.6;
+        if (this.combo > this.maxSessionCombo) this.maxSessionCombo = this.combo;
+        if (this.combo > SaveSystem.data.maxCombo) {
+          SaveSystem.data.maxCombo = this.combo;
+          Achievements.checkAll();
+        }
+      },
+
+      killMosquito(index, isCrit = false) {
+        const m = this.mosquitoes[index];
+        if (!m) return;
+        this.mosquitoes.splice(index, 1);
+
+        this.incrementCombo();
+        const comboMult = 1 + Math.min(3.0, Math.floor(this.combo / 5) * 0.25);
+        const weapon = this.getEquippedWeaponStats();
+        const goldWeaponBonus = weapon.id === 'golden_slipper' ? 1.25 : 1.0;
+        const coinPowerMult = this.powerups.doubleCoins > 0 ? 2 : 1;
+        const modeCoinMult = this.mode === 'hardcore' ? 3.0 : (this.mode === 'challenge' ? 2.5 : (this.mode === 'survival' ? 1.5 : (this.mode === 'timeAttack' ? 1.3 : 1.0)));
+
+        const earnedCoins = Math.max(1, Math.round(m.coins * coinPowerMult * goldWeaponBonus * modeCoinMult));
+        const earnedScore = Math.round(m.score * comboMult * (isCrit ? 1.5 : 1));
+
+        this.killsThisLevel++;
+        this.levelScore += earnedScore;
+        this.levelCoins += earnedCoins;
+
+        SaveSystem.data.totalKills++;
+        if (this.levelScore > SaveSystem.data.highestScore) {
+          SaveSystem.data.highestScore = this.levelScore;
+        }
+        SaveSystem.addCoins(earnedCoins);
+        DailySystem.recordKill();
+
+        AudioEngine.playCoin();
+        this.spawnParticles(m.x, m.y, m.glow, 16);
+        this.spawnFloatingText(m.x, m.y - 14, `+${earnedCoins} 🪙`, '#ffd700', 17);
+
+        // Explosive Mosquito chain splash
+        if (m.explosive) {
+          this.triggerShake(10, 0.25);
+          this.spawnParticles(m.x, m.y, '#ff5500', 26);
+          this.spawnFloatingText(m.x, m.y - 34, '💥 BOOM!', '#fb923c', 20);
+          for (let j = this.mosquitoes.length - 1; j >= 0; j--) {
+            const other = this.mosquitoes[j];
+            if (Math.hypot(other.x - m.x, other.y - m.y) <= 125) {
+              other.hp -= 65;
+              if (other.hp <= 0) {
+                this.killMosquito(j, false);
+              }
+            }
+          }
+        }
+
+        // Check Level Completion
+        if ((this.mode === 'classic' || this.mode === 'hardcore') && !this.boss && this.killsThisLevel >= this.requiredKills) {
+          this.completeLevel();
+        } else if (this.mode === 'challenge' && this.killsThisLevel >= 25) {
+          this.completeLevel();
+        } else if ((this.mode === 'survival' || this.mode === 'endless') && this.killsThisLevel >= this.requiredKills) {
+          this.level++;
+          this.killsThisLevel = 0;
+          this.requiredKills = 15 + this.level * 3;
+          UI.showToast(`WAVE ${this.level}`, 'Swarm intensity escalating!', '⚡');
+        }
+      },
+
+      defeatBoss() {
+        const b = this.boss;
+        if (!b) return;
+        this.boss = null;
+        this.bossProjectiles = [];
+
+        this.triggerShake(18, 0.55);
+        this.triggerVibration(120);
+        AudioEngine.playLevelComplete();
+        this.spawnParticles(b.x, b.y, b.primary, 45);
+        this.spawnParticles(b.x, b.y, '#ffd700', 35);
+
+        const modeCoinMult = this.mode === 'hardcore' ? 3.0 : 1.0;
+        const reward = Math.round(b.reward * modeCoinMult);
+        this.levelCoins += reward;
+        this.levelScore += reward * 5;
+
+        SaveSystem.data.bossesDefeated++;
+        if (this.levelScore > SaveSystem.data.highestScore) {
+          SaveSystem.data.highestScore = this.levelScore;
+        }
+        SaveSystem.addCoins(reward);
+
+        if (this.mode === 'bossBattle') {
+          this.bossRushIndex++;
+          UI.showToast('BOSS SLAIN!', `+${reward.toLocaleString()} Coins! Next Boss approaching...`, '👹');
+          setTimeout(() => {
+            if (this.state === 'playing') this.setupLevel(this.level + 5);
+          }, 1200);
+          return;
+        }
+
+        this.completeLevel();
+      },
+
+      completeLevel() {
+        this.state = 'level_complete';
+        AudioEngine.stopMusic();
+        AudioEngine.playLevelComplete();
+
+        const bonusCoins = 50 + this.level * 15;
+        this.levelCoins += bonusCoins;
+        SaveSystem.addCoins(bonusCoins);
+
+        if (this.mode === 'classic' || this.mode === 'hardcore') {
+          if (this.level >= CONFIG.MAX_CAMPAIGN_LEVEL) {
+            SaveSystem.data.campaignCompleted = true;
+            SaveSystem.data.unlockedLevel = CONFIG.MAX_CAMPAIGN_LEVEL;
+            SaveSystem.data.currentLevel = CONFIG.MAX_CAMPAIGN_LEVEL;
+            SaveSystem.addCoins(50000);
+            SaveSystem.save();
+            Achievements.checkAll();
+
+            const vicEl = document.getElementById('overlayCampaignVictory');
+            vicEl.classList.remove('hidden');
+            vicEl.classList.add('flex');
+            return;
+          }
+
+          const nextLvl = Math.min(CONFIG.MAX_CAMPAIGN_LEVEL, this.level + 1);
+          if (nextLvl > SaveSystem.data.unlockedLevel) {
+            SaveSystem.data.unlockedLevel = nextLvl;
+          }
+          SaveSystem.data.currentLevel = nextLvl;
+        }
+
+        SaveSystem.save();
+        Achievements.checkAll();
+
+        document.getElementById('lcTitle').textContent = `LEVEL ${this.level} / 100 COMPLETE!`;
+        document.getElementById('lcKills').textContent = this.killsThisLevel;
+        document.getElementById('lcCombo').textContent = `${this.maxSessionCombo}x`;
+        document.getElementById('lcScore').textContent = this.levelScore.toLocaleString();
+        document.getElementById('lcCoins').textContent = `+${this.levelCoins.toLocaleString()} 🪙`;
+
+        const lcEl = document.getElementById('overlayLevelComplete');
+        lcEl.classList.remove('hidden');
+        lcEl.classList.add('flex');
+      },
+
+      damagePlayer(amount = 1, reason = 'Mutant mosquitoes breached your bio-defense line!') {
+        if (this.powerups.shield > 0) {
+          this.spawnFloatingText(this.width / 2, this.height * CONFIG.DANGER_LINE_RATIO - 25, '🛡️ SHIELD BLOCKED!', '#00f3ff', 18);
+          return;
+        }
+
+        this.hearts = Math.max(0, this.hearts - amount);
+        this.combo = 0;
+        AudioEngine.playPlayerDamage();
+        this.triggerShake(12, 0.3);
+        this.triggerVibration(80);
+
+        const dmgOverlay = document.getElementById('damageOverlay');
+        dmgOverlay.style.backgroundColor = 'rgba(255, 30, 66, 0.38)';
+        setTimeout(() => { dmgOverlay.style.backgroundColor = 'rgba(255, 30, 66, 0)'; }, 180);
+
+        this.updateHUD();
+
+        if (this.hearts <= 0) {
+          this.gameOver(reason);
+        }
+      },
+
+      gameOver(reason) {
+        this.state = 'gameover';
+        AudioEngine.stopMusic();
+        AudioEngine.playGameOver();
+        SaveSystem.save();
+
+        document.getElementById('goReason').textContent = reason;
+        document.getElementById('goLevel').textContent = `Level ${this.level} / 100`;
+        document.getElementById('goScore').textContent = this.levelScore.toLocaleString();
+        document.getElementById('goCoins').textContent = `+${this.levelCoins.toLocaleString()} 🪙`;
+
+        const goEl = document.getElementById('overlayGameOver');
+        goEl.classList.remove('hidden');
+        goEl.classList.add('flex');
+      },
+
+      update(dt) {
+        // Animate ambient background lab particles always
+        this.bgParticles.forEach(p => {
+          p.y += p.vy;
+          if (p.y < -10) {
+            p.y = this.height + 10;
+            p.x = Math.random() * this.width;
+          }
+        });
+
+        if (this.shakeTime > 0) this.shakeTime -= dt;
+
+        // Update particles & floating texts even during transitions
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+          const p = this.particles[i];
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+          p.life -= dt;
+          p.alpha = Math.max(0, p.life * 2);
+          if (p.life <= 0) this.particles.splice(i, 1);
+        }
+
+        for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
+          const ft = this.floatingTexts[i];
+          ft.y += ft.vy * dt;
+          ft.life -= dt;
+          ft.alpha = Math.max(0, ft.life);
+          if (ft.life <= 0) this.floatingTexts.splice(i, 1);
+        }
+
+        for (let i = this.weaponSlashes.length - 1; i >= 0; i--) {
+          const s = this.weaponSlashes[i];
+          s.life -= dt;
+          s.alpha = Math.max(0, s.life / 0.24);
+          if (s.life <= 0) this.weaponSlashes.splice(i, 1);
+        }
+
+        if (this.state !== 'playing') return;
+
+        // Time Attack countdown
+        if (this.mode === 'timeAttack') {
+          this.timeLeft -= dt;
+          if (this.timeLeft <= 0) {
+            this.timeLeft = 0;
+            this.completeLevel();
+            return;
+          }
+          this.updateHUD();
+        }
+
+        // Combo decay
+        if (this.combo > 0) {
+          this.comboTimer -= dt;
+          if (this.comboTimer <= 0) {
+            this.combo = 0;
+            this.updateHUD();
+          }
+        }
+
+        // Power-up timers
+        let powerupChanged = false;
+        Object.keys(this.powerups).forEach(k => {
+          if (this.powerups[k] > 0) {
+            this.powerups[k] = Math.max(0, this.powerups[k] - dt);
+            powerupChanged = true;
+          }
+        });
+        if (powerupChanged) this.updateHUD();
+
+        // Spawn Power-up Orbs periodically
+        this.powerupSpawnTimer -= dt;
+        if (this.powerupSpawnTimer <= 0) {
+          this.spawnPowerupOrb();
+          this.powerupSpawnTimer = 9 + Math.random() * 6;
+        }
+
+        // Move Power-up Orbs
+        for (let i = this.powerupOrbs.length - 1; i >= 0; i--) {
+          const orb = this.powerupOrbs[i];
+          orb.y += orb.vy * dt;
+          orb.pulse += dt * 5;
+          if (orb.y > this.height + 40) {
+            this.powerupOrbs.splice(i, 1);
+          }
+        }
+
+        const timeScale = this.powerups.freezeAll > 0 ? 0 : (this.powerups.slowMotion > 0 ? 0.45 : 1.0);
+        const dangerY = this.height * CONFIG.DANGER_LINE_RATIO;
+
+        // Boss Logic
+        if (this.boss) {
+          const b = this.boss;
+          b.wingPhase += dt * 24;
+          b.phaseTime += dt;
+          if (b.hitFlash > 0) b.hitFlash -= dt;
+
+          if (b.y < b.targetY) {
+            b.y += 140 * dt;
+          } else if (timeScale > 0) {
+            b.x += b.vx * dt * timeScale;
+            if (b.x < b.radius + 20) {
+              b.x = b.radius + 20;
+              b.vx = Math.abs(b.vx);
+            } else if (b.x > this.width - b.radius - 20) {
+              b.x = this.width - b.radius - 20;
+              b.vx = -Math.abs(b.vx);
+            }
+            b.y = b.targetY + Math.sin(b.phaseTime * 2.4) * 32;
+
+            // Boss Attack Pattern
+            b.attackTimer -= dt * timeScale;
+            if (b.attackTimer <= 0) {
+              b.attackTimer = Math.max(1.2, 2.6 - this.level * 0.012);
+              const count = b.pattern === 'omega_storm' ? 4 : (b.pattern === 'acid_nova' ? 3 : 2);
+              for (let k = 0; k < count; k++) {
+                const spread = (k - (count - 1) / 2) * 70;
+                this.bossProjectiles.push({
+                  x: b.x + spread,
+                  y: b.y + b.radius * 0.6,
+                  vx: spread * 0.5,
+                  vy: 155 + this.level * 1.4,
+                  radius: 13,
+                  color: b.primary
+                });
+              }
+              if (b.pattern === 'blink_swarm' && this.mosquitoes.length < 4) {
+                this.spawnMosquito();
+              }
+            }
+          }
+        } else {
+          // Regular Wave Spawning
+          this.spawnTimer -= dt;
+          const spawnInterval = Math.max(0.32, 1.15 - this.level * 0.008);
+          const maxActive = Math.min(18, 6 + Math.floor(this.level / 4));
+          if (this.spawnTimer <= 0 && this.mosquitoes.length < maxActive) {
+            this.spawnMosquito();
+            this.spawnTimer = spawnInterval;
+          }
+        }
+
+        // Update Boss Projectiles
+        for (let i = this.bossProjectiles.length - 1; i >= 0; i--) {
+          const proj = this.bossProjectiles[i];
+          proj.x += proj.vx * dt * timeScale;
+          proj.y += proj.vy * dt * timeScale;
+          if (proj.y >= dangerY) {
+            this.bossProjectiles.splice(i, 1);
+            this.damagePlayer(1, 'Boss bio-plasma projectile struck your barrier!');
+          }
+        }
+
+        // Update Mosquitoes
+        for (let i = this.mosquitoes.length - 1; i >= 0; i--) {
+          const m = this.mosquitoes[i];
+          m.wingPhase += dt * 28;
+          m.stealthPhase += dt * 3.5;
+          if (m.hitFlash > 0) m.hitFlash -= dt;
+          if (m.chillTimer > 0) m.chillTimer -= dt;
+
+          const chillMult = m.chillTimer > 0 ? 0.45 : 1.0;
+          m.x += m.vx * dt * timeScale * chillMult;
+          m.y += m.speed * dt * timeScale * chillMult;
+
+          if (m.x < m.radius + 12 || m.x > this.width - m.radius - 12) {
+            m.vx *= -1;
+          }
+
+          if (m.y + m.radius >= dangerY) {
+            const dmg = m.poisonDamage || 1;
+            this.mosquitoes.splice(i, 1);
+            this.damagePlayer(dmg, m.poisonDamage ? 'Venomous Poison Mosquito breached the barrier!' : 'Mutant mosquitoes breached your bio-defense line!');
+          }
+        }
+      },
+
+      render() {
+        const ctx = this.ctx;
+        ctx.save();
+
+        // Dark Bio-Lab Background
+        ctx.fillStyle = '#05070c';
+        ctx.fillRect(0, 0, this.width, this.height);
+
+        // Screen Shake
+        if (this.shakeTime > 0) {
+          const sx = (Math.random() - 0.5) * this.shakeIntensity;
+          const sy = (Math.random() - 0.5) * this.shakeIntensity;
+          ctx.translate(sx, sy);
+        }
+
+        // Subtle Lab Grid
+        ctx.strokeStyle = 'rgba(0, 243, 255, 0.04)';
+        ctx.lineWidth = 1;
+        const gridSize = 48;
+        for (let x = 0; x < this.width; x += gridSize) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, this.height);
+          ctx.stroke();
+        }
+        for (let y = 0; y < this.height; y += gridSize) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(this.width, y);
+          ctx.stroke();
+        }
+
+        // Ambient Bio-Lab Particles
+        this.bgParticles.forEach(p => {
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        // Danger Breach Laser Line during Gameplay
+        if (this.state !== 'menu') {
+          const dangerY = this.height * CONFIG.DANGER_LINE_RATIO;
+          const grad = ctx.createLinearGradient(0, dangerY - 18, 0, dangerY + 18);
+          grad.addColorStop(0, 'rgba(255, 30, 66, 0)');
+          grad.addColorStop(0.5, 'rgba(255, 30, 66, 0.35)');
+          grad.addColorStop(1, 'rgba(255, 30, 66, 0)');
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, dangerY - 18, this.width, 36);
+
+          ctx.strokeStyle = '#ff1e42';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([12, 8]);
+          ctx.beginPath();
+          ctx.moveTo(0, dangerY);
+          ctx.lineTo(this.width, dangerY);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        // Render Power-Up Orbs
+        this.powerupOrbs.forEach(orb => {
+          const scale = 1 + Math.sin(orb.pulse) * 0.08;
+          ctx.save();
+          ctx.translate(orb.x, orb.y);
+          ctx.scale(scale, scale);
+          ctx.fillStyle = 'rgba(10, 15, 28, 0.9)';
+          ctx.strokeStyle = orb.color;
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.arc(0, 0, orb.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.font = '20px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(orb.icon, 0, 1);
+          ctx.restore();
+        });
+
+        // Render Mosquitoes
+        this.mosquitoes.forEach(m => {
+          ctx.save();
+          ctx.translate(m.x, m.y);
+          if (m.stealth) {
+            ctx.globalAlpha = 0.28 + 0.65 * Math.abs(Math.sin(m.stealthPhase));
+          }
+
+          // Animated Wings
+          const wingFlap = Math.sin(m.wingPhase) * 0.45;
+          ctx.fillStyle = 'rgba(226, 232, 240, 0.38)';
+          ctx.save();
+          ctx.rotate(-0.4 + wingFlap);
+          ctx.beginPath();
+          ctx.ellipse(-m.radius * 0.85, -4, m.radius * 0.8, m.radius * 0.32, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+
+          ctx.save();
+          ctx.rotate(0.4 - wingFlap);
+          ctx.beginPath();
+          ctx.ellipse(m.radius * 0.85, -4, m.radius * 0.8, m.radius * 0.32, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+
+          // Body
+          ctx.fillStyle = m.hitFlash > 0 ? '#ffffff' : (m.chillTimer > 0 ? '#67e8f9' : m.color);
+          ctx.beginPath();
+          ctx.ellipse(0, 0, m.radius * 0.55, m.radius * 0.95, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (m.armor) {
+            ctx.strokeStyle = '#f8fafc';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+          }
+
+          // Glowing Eyes
+          ctx.fillStyle = '#ff1e42';
+          ctx.beginPath();
+          ctx.arc(-4, -m.radius * 0.45, 2.8, 0, Math.PI * 2);
+          ctx.arc(4, -m.radius * 0.45, 2.8, 0, Math.PI * 2);
+          ctx.fill();
+
+          // HP Bar for multi-HP mosquitoes
+          if (m.hp < m.maxHp) {
+            const bw = m.radius * 1.8;
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+            ctx.fillRect(-bw / 2, -m.radius - 10, bw, 4);
+            ctx.fillStyle = m.glow;
+            ctx.fillRect(-bw / 2, -m.radius - 10, bw * Math.max(0, m.hp / m.maxHp), 4);
+          }
+
+          ctx.restore();
+        });
+
+        // Render Boss
+        if (this.boss) {
+          const b = this.boss;
+          ctx.save();
+          ctx.translate(b.x, b.y);
+
+          // Aura Ring
+          ctx.strokeStyle = b.primary;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(0, 0, b.radius + 10 + Math.sin(b.phaseTime * 5) * 4, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Giant Wings
+          const flap = Math.sin(b.wingPhase) * 0.35;
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+          ctx.save();
+          ctx.rotate(-0.35 + flap);
+          ctx.beginPath();
+          ctx.ellipse(-b.radius * 0.95, -10, b.radius * 0.9, b.radius * 0.36, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+
+          ctx.save();
+          ctx.rotate(0.35 - flap);
+          ctx.beginPath();
+          ctx.ellipse(b.radius * 0.95, -10, b.radius * 0.9, b.radius * 0.36, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+
+          // Boss Core
+          ctx.fillStyle = b.hitFlash > 0 ? '#ffffff' : b.primary;
+          ctx.beginPath();
+          ctx.arc(0, 0, b.radius * 0.72, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.lineWidth = 4;
+          ctx.strokeStyle = b.secondary;
+          ctx.stroke();
+
+          // Boss Icon
+          ctx.font = `${Math.round(b.radius * 0.85)}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(b.icon, 0, 2);
+
+          ctx.restore();
+        }
+
+        // Render Boss Projectiles
+        this.bossProjectiles.forEach(proj => {
+          ctx.fillStyle = proj.color;
+          ctx.beginPath();
+          ctx.arc(proj.x, proj.y, proj.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        });
+
+        // Render Weapon Slashes
+        this.weaponSlashes.forEach(s => {
+          ctx.save();
+          ctx.globalAlpha = s.alpha;
+          ctx.strokeStyle = s.color;
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.radius * (1.15 - s.alpha * 0.25), 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.fillStyle = s.color;
+          ctx.globalAlpha = s.alpha * 0.2;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        });
+
+        // Render Hit Particles
+        this.particles.forEach(p => {
+          ctx.save();
+          ctx.globalAlpha = p.alpha;
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        });
+
+        // Render Floating Damage / Coin Popups
+        this.floatingTexts.forEach(ft => {
+          ctx.save();
+          ctx.globalAlpha = ft.alpha;
+          ctx.font = `bold ${ft.size}px Orbitron, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.fillStyle = ft.color;
+          ctx.fillText(ft.text, ft.x, ft.y);
+          ctx.restore();
+        });
+
+        ctx.restore();
+      },
+
+      loop(timestamp) {
+        const dt = Math.min(0.05, Math.max(0.001, (timestamp - this.lastFrameTime) / 1000));
+        this.lastFrameTime = timestamp;
+
+        this.update(dt);
+        this.render();
+
+        requestAnimationFrame((ts) => this.loop(ts));
+      },
+
+      updateHUD() {
+        // Hearts
+        const heartsEl = document.getElementById('hudHearts');
+        let hStr = '';
+        for (let i = 0; i < this.maxHearts; i++) {
+          hStr += i < this.hearts ? '❤️' : '🖤';
+        }
+        heartsEl.textContent = hStr;
+        document.getElementById('hudHealthFill').style.width = `${(this.hearts / this.maxHearts) * 100}%`;
+
+        const shieldEl = document.getElementById('hudShieldBadge');
+        if (this.powerups.shield > 0) shieldEl.classList.remove('hidden');
+        else shieldEl.classList.add('hidden');
+
+        // Level & Objective
+        document.getElementById('hudLevelLabel').textContent = this.mode === 'endless' ? `WAVE ${this.level}` : `LEVEL ${this.level} / 100`;
+        document.getElementById('hudModeBadge').textContent = this.mode.toUpperCase();
+
+        if (this.boss) {
+          document.getElementById('hudObjectiveText').textContent = 'DEFEAT BOSS';
+          document.getElementById('hudProgressBar').style.width = `${Math.max(0, (this.boss.hp / this.boss.maxHp) * 100)}%`;
+          document.getElementById('hudBossContainer').classList.remove('hidden');
+          document.getElementById('hudBossName').textContent = this.boss.name;
+          document.getElementById('hudBossHpText').textContent = `${Math.max(0, this.boss.hp).toLocaleString()} / ${this.boss.maxHp.toLocaleString()}`;
+          document.getElementById('hudBossHpBar').style.width = `${Math.max(0, (this.boss.hp / this.boss.maxHp) * 100)}%`;
+        } else {
+          document.getElementById('hudBossContainer').classList.add('hidden');
+          if (this.mode === 'timeAttack') {
+            document.getElementById('hudObjectiveText').textContent = `${Math.ceil(this.timeLeft)}s LEFT`;
+            document.getElementById('hudProgressBar').style.width = `${(this.timeLeft / 60) * 100}%`;
+          } else {
+            const target = this.mode === 'challenge' ? 25 : this.requiredKills;
+            document.getElementById('hudObjectiveText').textContent = `${this.killsThisLevel} / ${target}`;
+            document.getElementById('hudProgressBar').style.width = `${Math.min(100, (this.killsThisLevel / target) * 100)}%`;
+          }
+        }
+
+        // Score & Coins
+        document.getElementById('hudScore').textContent = this.levelScore.toLocaleString();
+        document.getElementById('hudCoins').textContent = SaveSystem.data.coins.toLocaleString();
+
+        // Combo Box
+        const comboBox = document.getElementById('hudComboBox');
+        if (this.combo >= 2) {
+          comboBox.classList.remove('hidden');
+          document.getElementById('hudComboCount').textContent = `${this.combo}x COMBO`;
+          const mult = (1 + Math.min(3.0, Math.floor(this.combo / 5) * 0.25)).toFixed(2);
+          document.getElementById('hudComboMult').textContent = `MULTIPLIER x${mult}`;
+        } else {
+          comboBox.classList.add('hidden');
+        }
+
+        // Active Power-Up Pills
+        const pContainer = document.getElementById('hudActivePowerups');
+        pContainer.innerHTML = '';
+        POWERUP_TYPES.forEach(pt => {
+          if (this.powerups[pt.id] && this.powerups[pt.id] > 0) {
+            const badge = document.createElement('span');
+            badge.className = 'px-2.5 py-0.5 rounded-full bg-slate-950/90 border border-cyan-400/60 font-arcade text-[10px] text-cyan-200';
+            badge.textContent = `${pt.icon} ${pt.name} (${Math.ceil(this.powerups[pt.id])}s)`;
+            pContainer.appendChild(badge);
+          }
+        });
+
+        // Weapon Info
+        const w = this.getEquippedWeaponStats();
+        document.getElementById('hudWeaponIcon').textContent = w.icon;
+        document.getElementById('hudWeaponName').textContent = w.name.toUpperCase();
+        document.getElementById('hudWeaponStats').textContent = `LVL ${w.level} • DMG ${w.damage}`;
+      }
+    };
+
+    /**
+     * 6. UI CONTROLLER & MODAL RENDERERS
+     */
+    const UI = {
+      activeSector: 1,
+
+      showToast(title, subtitle, icon = '🏆') {
+        const container = document.getElementById('toastContainer');
+        const el = document.createElement('div');
+        el.className = 'bg-slate-950/95 border border-cyan-400/70 rounded-2xl p-3 shadow-xl flex items-center gap-3 transition-all duration-300';
+        el.innerHTML = `
+          <div class="text-2xl">${icon}</div>
+          <div>
+            <div class="font-arcade text-xs font-bold text-cyan-300">${title}</div>
+            <div class="text-xs text-slate-300">${subtitle}</div>
+          </div>
+        `;
+        container.appendChild(el);
+        setTimeout(() => {
+          el.style.opacity = '0';
+          setTimeout(() => el.remove(), 300);
+        }, 3200);
+      },
+
+      openModal(modalId) {
+        AudioEngine.playClick();
+        this.closeModals(true);
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        if (modalId === 'modalLevels') this.renderLevelsModal();
+        if (modalId === 'modalModes') this.renderModesModal();
+        if (modalId === 'modalShop') this.renderShopModal();
+        if (modalId === 'modalProfile') this.renderProfileModal();
+        if (modalId === 'modalAchievements') this.renderAchievementsModal();
+        if (modalId === 'modalDaily') this.renderDailyModal();
+        if (modalId === 'modalStats') this.renderStatsModal();
+        if (modalId === 'modalSettings') this.renderSettingsModal();
+      },
+
+      closeModals(silent = false) {
+        if (!silent) AudioEngine.playClick();
+        ['modalLevels', 'modalModes', 'modalShop', 'modalWeaponUpgrade', 'modalProfile', 'modalAchievements', 'modalDaily', 'modalStats', 'modalSettings'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.classList.add('hidden');
+            el.classList.remove('flex');
+          }
+        });
+      },
+
+      updateTopCounters() {
+        const s = SaveSystem.data;
+        document.getElementById('menuPlayerName').textContent = s.playerName;
+        document.getElementById('menuPlayerRank').textContent = `Unlocked ${s.unlockedLevel}/100 • Kills: ${s.totalKills.toLocaleString()}`;
+        document.getElementById('menuCoins').textContent = s.coins.toLocaleString();
+        document.getElementById('menuPlayLevelNum').textContent = s.currentLevel;
+        document.getElementById('shopCoinsDisplay').textContent = s.coins.toLocaleString();
+
+        const w = Game.getEquippedWeaponStats();
+        document.getElementById('menuEquippedIcon').textContent = w.icon;
+        document.getElementById('menuEquippedName').textContent = `${w.name.toUpperCase()} (LVL ${w.level})`;
+
+        const dot = document.getElementById('dailyNotificationDot');
+        if (DailySystem.canClaimToday()) dot.classList.remove('hidden');
+        else dot.classList.add('hidden');
+      },
+
+      updateMuteButton() {
+        document.getElementById('muteIconText').textContent = SaveSystem.data.settings.muted ? '🔇' : '🔊';
+      },
+
+      refreshAll() {
+        this.updateTopCounters();
+        this.updateMuteButton();
+      },
+
+      renderLevelsModal() {
+        const tabsBar = document.getElementById('sectorTabsBar');
+        const grid = document.getElementById('levelGridContainer');
+        tabsBar.innerHTML = '';
+        grid.innerHTML = '';
+
+        const sectors = [
+          { id: 1, label: 'SECTOR 1 (1-20)', start: 1, end: 20 },
+          { id: 2, label: 'SECTOR 2 (21-40)', start: 21, end: 40 },
+          { id: 3, label: 'SECTOR 3 (41-60)', start: 41, end: 60 },
+          { id: 4, label: 'SECTOR 4 (61-80)', start: 61, end: 80 },
+          { id: 5, label: 'SECTOR 5 (81-100)', start: 81, end: 100 }
+        ];
+
+        sectors.forEach(sec => {
+          const btn = document.createElement('button');
+          const active = this.activeSector === sec.id;
+          btn.className = `btn-arcade px-3 py-1.5 rounded-xl font-arcade text-xs font-bold ${active ? 'bg-cyan-500 text-slate-950' : 'bg-slate-900 text-slate-300 border border-slate-700'}`;
+          btn.textContent = sec.label;
+          btn.onclick = () => {
+            AudioEngine.playClick();
+            this.activeSector = sec.id;
+            this.renderLevelsModal();
+          };
+          tabsBar.appendChild(btn);
+        });
+
+        const currentSec = sectors.find(s => s.id === this.activeSector) || sectors[0];
+        const unlocked = SaveSystem.data.unlockedLevel;
+
+        for (let lvl = currentSec.start; lvl <= currentSec.end; lvl++) {
+          const isUnlocked = lvl <= unlocked;
+          const isBoss = Game.isBossLevel(lvl);
+          const bossInfo = isBoss ? Game.getBossForLevel(lvl) : null;
+
+          const card = document.createElement('button');
+          card.disabled = !isUnlocked;
+          card.className = `btn-arcade p-3 rounded-2xl flex flex-col items-center justify-center text-center border ${
+            !isUnlocked
+              ? 'bg-slate-900/40 border-slate-800 opacity-45 cursor-not-allowed'
+              : isBoss
+                ? 'bg-rose-950/70 border-rose-500/80 hover:bg-rose-900/80'
+                : 'bg-slate-900 border-cyan-500/40 hover:border-cyan-300'
+          }`;
+
+          card.innerHTML = `
+            <span class="text-lg mb-0.5">${!isUnlocked ? '🔒' : (isBoss ? bossInfo.icon : '🧬')}</span>
+            <span class="font-arcade text-xs sm:text-sm font-black ${isBoss ? 'text-rose-400' : 'text-cyan-300'}">LVL ${lvl}</span>
+            <span class="text-[10px] text-slate-400 truncate w-full">${isBoss ? bossInfo.name : `Kills: ${10 + lvl * 2}`}</span>
+          `;
+
+          if (isUnlocked) {
+            card.onclick = () => Game.startMode('classic', lvl);
+          }
+          grid.appendChild(card);
+        }
+      },
+
+      renderModesModal() {
+        const container = document.getElementById('modesListContainer');
+        container.innerHTML = '';
+        GAME_MODES.forEach(m => {
+          const card = document.createElement('div');
+          card.className = 'bg-slate-900/95 border border-slate-800 hover:border-rose-500/60 rounded-2xl p-4 flex flex-col justify-between gap-3';
+          card.innerHTML = `
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="font-arcade text-sm sm:text-base font-bold text-white">${m.icon} ${m.name}</span>
+                <span class="text-[10px] font-arcade px-2 py-0.5 rounded bg-rose-500/20 text-rose-300">${m.rewardText}</span>
+              </div>
+              <p class="text-xs text-slate-300 mt-2">${m.desc}</p>
+            </div>
+            <button class="btn-arcade w-full py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-500 text-white font-arcade font-bold text-xs">
+              ▶ DEPLOY MODE
+            </button>
+          `;
+          card.querySelector('button').onclick = () => Game.startMode(m.id, m.id === 'classic' ? SaveSystem.data.currentLevel : 1);
+          container.appendChild(card);
+        });
+      },
+
+      renderShopModal() {
+        document.getElementById('shopCoinsDisplay').textContent = SaveSystem.data.coins.toLocaleString();
+        const container = document.getElementById('weaponShopContainer');
+        container.innerHTML = '';
+
+        WEAPONS.forEach(w => {
+          const owned = SaveSystem.data.unlockedWeapons.includes(w.id);
+          const equipped = SaveSystem.data.equippedWeapon === w.id;
+          const lvl = SaveSystem.data.weaponLevels[w.id] || 1;
+          const dmg = Math.round(w.baseDamage * (1 + (lvl - 1) * 0.30));
+
+          const card = document.createElement('div');
+          card.className = `bg-slate-900/95 rounded-2xl p-4 border flex flex-col justify-between gap-3 ${
+            equipped ? 'border-cyan-400 shadow-[0_0_15px_rgba(0,243,255,0.2)]' : 'border-slate-800'
+          }`;
+
+          card.innerHTML = `
+            <div>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                  <span class="text-3xl">${w.icon}</span>
+                  <div>
+                    <div class="font-arcade text-sm font-bold text-white">${w.name}</div>
+                    <div class="text-[11px] font-arcade text-amber-300">${owned ? `LEVEL ${lvl} / 10 • DMG ${dmg}` : `BASE DMG ${w.baseDamage}`}</div>
+                  </div>
+                </div>
+                ${equipped ? '<span class="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-arcade text-[10px]">EQUIPPED</span>' : ''}
+              </div>
+              <p class="text-xs text-slate-400 mt-2">${w.desc}</p>
+            </div>
+            <div class="flex gap-2 pt-1" id="actions_${w.id}"></div>
+          `;
+
+          const actBox = card.querySelector(`#actions_${w.id}`);
+          if (!owned) {
+            const buyBtn = document.createElement('button');
+            buyBtn.className = 'btn-arcade w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-arcade font-black text-xs';
+            buyBtn.textContent = `UNLOCK (🪙 ${w.cost.toLocaleString()})`;
+            buyBtn.onclick = () => {
+              if (SaveSystem.data.coins >= w.cost) {
+                SaveSystem.data.coins -= w.cost;
+                SaveSystem.data.unlockedWeapons.push(w.id);
+                SaveSystem.data.weaponLevels[w.id] = 1;
+                SaveSystem.data.equippedWeapon = w.id;
+                SaveSystem.save();
+                Achievements.checkAll();
+                AudioEngine.playPowerup();
+                UI.showToast('WEAPON UNLOCKED!', `${w.name} equipped!`, w.icon);
+                UI.renderShopModal();
+                UI.updateTopCounters();
+              } else {
+                AudioEngine.playPlayerDamage();
+                UI.showToast('INSUFFICIENT COINS', `Need ${w.cost.toLocaleString()} coins.`, '⚠️');
+              }
+            };
+            actBox.appendChild(buyBtn);
+          } else {
+            const eqBtn = document.createElement('button');
+            eqBtn.className = `btn-arcade flex-1 py-2 rounded-xl font-arcade font-bold text-xs ${
+              equipped ? 'bg-slate-800 text-cyan-300 border border-cyan-500/40' : 'bg-cyan-500 text-slate-950'
+            }`;
+            eqBtn.textContent = equipped ? 'EQUIPPED' : 'EQUIP';
+            eqBtn.onclick = () => {
+              AudioEngine.playClick();
+              SaveSystem.data.equippedWeapon = w.id;
+              SaveSystem.save();
+              UI.renderShopModal();
+              UI.updateTopCounters();
+            };
+
+            const upgBtn = document.createElement('button');
+            upgBtn.className = 'btn-arcade flex-1 py-2 rounded-xl bg-amber-500/20 border border-amber-400/50 text-amber-300 font-arcade font-bold text-xs';
+            upgBtn.textContent = lvl >= 10 ? 'MAX LVL' : 'UPGRADE';
+            upgBtn.onclick = () => this.openWeaponUpgradeModal(w.id);
+
+            actBox.appendChild(eqBtn);
+            actBox.appendChild(upgBtn);
+          }
+
+          container.appendChild(card);
+        });
+      },
+
+      openWeaponUpgradeModal(weaponId) {
+        const w = WEAPONS.find(item => item.id === weaponId);
+        if (!w) return;
+        this.closeModals(true);
+        const modal = document.getElementById('modalWeaponUpgrade');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        const lvl = SaveSystem.data.weaponLevels[w.id] || 1;
+        const nextLvl = Math.min(10, lvl + 1);
+        const curDmg = Math.round(w.baseDamage * (1 + (lvl - 1) * 0.30));
+        const nxtDmg = Math.round(w.baseDamage * (1 + (nextLvl - 1) * 0.30));
+        const curRad = w.baseRadius + (lvl - 1) * 4;
+        const nxtRad = w.baseRadius + (nextLvl - 1) * 4;
+        const curCrit = Math.round(Math.min(0.75, w.baseCrit + (lvl - 1) * 0.025) * 100);
+        const nxtCrit = Math.round(Math.min(0.75, w.baseCrit + (nextLvl - 1) * 0.025) * 100);
+        const upgCost = Math.round((w.cost + 200) * lvl * 0.55);
+
+        document.getElementById('upgWeaponIcon').textContent = w.icon;
+        document.getElementById('upgWeaponName').textContent = w.name.toUpperCase();
+        document.getElementById('upgWeaponTier').textContent = `UPGRADE LEVEL ${lvl} / 10`;
+        document.getElementById('upgWeaponDesc').textContent = w.desc;
+        document.getElementById('upgStatDamage').textContent = lvl >= 10 ? `${curDmg} (MAX)` : `${curDmg} → ${nxtDmg}`;
+        document.getElementById('upgStatRadius').textContent = lvl >= 10 ? `${curRad}px (MAX)` : `${curRad}px → ${nxtRad}px`;
+        document.getElementById('upgStatCrit').textContent = lvl >= 10 ? `${curCrit}% (MAX)` : `${curCrit}% → ${nxtCrit}%`;
+
+        const pips = document.getElementById('upgLevelPips');
+        pips.innerHTML = '';
+        for (let i = 1; i <= 10; i++) {
+          const p = document.createElement('div');
+          p.className = `h-2 rounded-full ${i <= lvl ? 'bg-amber-400' : 'bg-slate-800'}`;
+          pips.appendChild(p);
+        }
+
+        const btn = document.getElementById('btnConfirmUpgrade');
+        if (lvl >= 10) {
+          btn.textContent = 'MAXIMUM LEVEL REACHED';
+          btn.disabled = true;
+        } else {
+          btn.disabled = false;
+          btn.textContent = `UPGRADE TO LVL ${nextLvl} (🪙 ${upgCost.toLocaleString()})`;
+          btn.onclick = () => {
+            if (SaveSystem.data.coins >= upgCost) {
+              SaveSystem.data.coins -= upgCost;
+              SaveSystem.data.weaponLevels[w.id] = nextLvl;
+              SaveSystem.save();
+              AudioEngine.playPowerup();
+              UI.showToast('WEAPON UPGRADED!', `${w.name} reached Level ${nextLvl}!`, '⬆️');
+              UI.openWeaponUpgradeModal(w.id);
+              UI.updateTopCounters();
+            } else {
+              AudioEngine.playPlayerDamage();
+              UI.showToast('NOT ENOUGH COINS', `Requires ${upgCost.toLocaleString()} coins.`, '⚠️');
+            }
+          };
+        }
+      },
+
+      savePlayerName() {
+        const val = document.getElementById('inputPlayerName').value.trim();
+        if (val) {
+          SaveSystem.data.playerName = val.toUpperCase();
+          SaveSystem.save();
+          AudioEngine.playClick();
+          this.updateTopCounters();
+          this.showToast('CALLSIGN UPDATED', `Welcome, ${SaveSystem.data.playerName}`, '🧬');
+        }
+      },
+
+      renderProfileModal() {
+        const s = SaveSystem.data;
+        document.getElementById('inputPlayerName').value = s.playerName;
+        const items = [
+          { label: 'Campaign Progress', val: `Level ${s.unlockedLevel} / 100` },
+          { label: 'Total Kills', val: s.totalKills.toLocaleString() },
+          { label: 'Current Coins', val: `🪙 ${s.coins.toLocaleString()}` },
+          { label: 'Highest Score', val: s.highestScore.toLocaleString() },
+          { label: 'Bosses Defeated', val: s.bossesDefeated },
+          { label: 'Weapons Unlocked', val: `${s.unlockedWeapons.length} / ${WEAPONS.length}` },
+          { label: 'Achievements', val: `${s.achievements.length} / ${ACHIEVEMENTS_LIST.length}` },
+          { label: 'Max Combo', val: `${s.maxCombo}x` }
+        ];
+        const grid = document.getElementById('profileSummaryGrid');
+        grid.innerHTML = items.map(it => `
+          <div class="bg-slate-900 rounded-xl p-3 border border-slate-800">
+            <div class="text-[11px] text-slate-400">${it.label}</div>
+            <div class="font-arcade text-sm font-bold text-cyan-300 mt-0.5">${it.val}</div>
+          </div>
+        `).join('');
+      },
+
+      renderAchievementsModal() {
+        const s = SaveSystem.data;
+        document.getElementById('achProgressSummary').textContent = `${s.achievements.length} / ${ACHIEVEMENTS_LIST.length} Unlocked`;
+        const container = document.getElementById('achievementsContainer');
+        container.innerHTML = '';
+
+        ACHIEVEMENTS_LIST.forEach(ach => {
+          const unlocked = s.achievements.includes(ach.id);
+          const card = document.createElement('div');
+          card.className = `p-3.5 rounded-2xl border flex items-center gap-3 ${
+            unlocked ? 'bg-purple-950/40 border-purple-400/70' : 'bg-slate-900/60 border-slate-800 opacity-60'
+          }`;
+          card.innerHTML = `
+            <div class="text-3xl">${unlocked ? ach.icon : '🔒'}</div>
+            <div class="flex-1">
+              <div class="font-arcade text-xs sm:text-sm font-bold ${unlocked ? 'text-purple-200' : 'text-slate-400'}">${ach.name}</div>
+              <div class="text-xs text-slate-400">${ach.desc}</div>
+              <div class="text-[11px] font-arcade text-amber-300 mt-1">Reward: +${ach.reward.toLocaleString()} 🪙</div>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      },
+
+      renderDailyModal() {
+        const d = SaveSystem.data.daily;
+        const canClaim = DailySystem.canClaimToday();
+        const grid = document.getElementById('dailyGridContainer');
+        grid.innerHTML = '';
+
+        DAILY_REWARDS_SCHEDULE.forEach(item => {
+          const isCurrent = item.day === d.streakDay;
+          const isPast = item.day < d.streakDay;
+          const box = document.createElement('div');
+          box.className = `p-3 rounded-2xl border text-center flex flex-col items-center justify-between gap-2 ${
+            isCurrent && canClaim
+              ? 'bg-amber-500/20 border-amber-400 shadow-[0_0_15px_rgba(255,215,0,0.25)]'
+              : isPast
+                ? 'bg-emerald-950/40 border-emerald-500/40 opacity-75'
+                : 'bg-slate-900 border-slate-800'
+          }`;
+          box.innerHTML = `
+            <div class="font-arcade text-[10px] font-bold text-slate-300">${item.label}</div>
+            <div class="text-2xl">${isPast ? '✅' : '🪙'}</div>
+            <div class="font-arcade text-xs font-black text-amber-300">+${item.coins}</div>
+          `;
+          if (isCurrent && canClaim) {
+            const btn = document.createElement('button');
+            btn.className = 'btn-arcade w-full py-1.5 rounded-lg bg-amber-400 text-slate-950 font-arcade font-black text-[10px]';
+            btn.textContent = 'CLAIM';
+            btn.onclick = () => DailySystem.claimDaily(item.day);
+            box.appendChild(btn);
+          }
+          grid.appendChild(box);
+        });
+
+        const today = DailySystem.getTodayStr();
+        const killsToday = d.challengeDate === today ? d.challengeKills : 0;
+        const claimedToday = d.challengeDate === today && d.challengeClaimed;
+        document.getElementById('dailyChallengeProgress').textContent = `Progress: ${Math.min(50, killsToday)} / 50`;
+        const cBtn = document.getElementById('btnClaimDailyChallenge');
+        if (claimedToday) {
+          cBtn.textContent = 'CLAIMED ✓';
+          cBtn.disabled = true;
+        } else if (killsToday >= 50) {
+          cBtn.textContent = 'CLAIM 🪙 300';
+          cBtn.disabled = false;
+        } else {
+          cBtn.textContent = 'IN PROGRESS';
+          cBtn.disabled = true;
+        }
+
+        const hist = document.getElementById('dailyHistoryList');
+        hist.innerHTML = d.history.map(line => `<div>• ${line}</div>`).join('');
+      },
+
+      renderStatsModal() {
+        const s = SaveSystem.data;
+        const stats = [
+          { label: 'Total Mosquitoes Killed', val: s.totalKills.toLocaleString() },
+          { label: 'Bosses Defeated', val: s.bossesDefeated },
+          { label: 'Highest Score', val: s.highestScore.toLocaleString() },
+          { label: 'Lifetime Coins Earned', val: s.lifetimeCoins.toLocaleString() },
+          { label: 'Highest Combo', val: `${s.maxCombo}x` },
+          { label: 'Sessions Played', val: s.gamesPlayed },
+          { label: 'Campaign Unlocked', val: `${s.unlockedLevel} / 100` },
+          { label: 'Weapons Owned', val: `${s.unlockedWeapons.length} / 10` },
+          { label: '100-Level Mastery', val: s.campaignCompleted ? 'COMPLETED' : 'IN PROGRESS' }
+        ];
+        document.getElementById('statsContainer').innerHTML = stats.map(st => `
+          <div class="bg-slate-900 rounded-2xl p-3.5 border border-slate-800">
+            <div class="text-xs text-slate-400">${st.label}</div>
+            <div class="font-arcade text-base font-bold text-cyan-300 mt-1">${st.val}</div>
+          </div>
+        `).join('');
+      },
+
+      renderSettingsModal() {
+        const st = SaveSystem.data.settings;
+        document.getElementById('rangeMusicVol').value = Math.round(st.musicVol * 100);
+        document.getElementById('setMusicVal').textContent = `${Math.round(st.musicVol * 100)}%`;
+        document.getElementById('rangeSfxVol').value = Math.round(st.sfxVol * 100);
+        document.getElementById('setSfxVal').textContent = `${Math.round(st.sfxVol * 100)}%`;
+        document.getElementById('selectGraphics').value = st.graphics;
+        document.getElementById('checkVibration').checked = st.vibration;
+        document.getElementById('checkPerfMode').checked = st.perfMode;
+      },
+
+      updateSettings() {
+        const st = SaveSystem.data.settings;
+        st.musicVol = parseInt(document.getElementById('rangeMusicVol').value, 10) / 100;
+        st.sfxVol = parseInt(document.getElementById('rangeSfxVol').value, 10) / 100;
+        st.graphics = document.getElementById('selectGraphics').value;
+        st.vibration = document.getElementById('checkVibration').checked;
+        st.perfMode = document.getElementById('checkPerfMode').checked;
+
+        document.getElementById('setMusicVal').textContent = `${Math.round(st.musicVol * 100)}%`;
+        document.getElementById('setSfxVal').textContent = `${Math.round(st.sfxVol * 100)}%`;
+        SaveSystem.save();
+      }
+    };
+
+    /**
+     * 7. SAFE INITIALIZATION ON DOM READY
+     */
+    window.addEventListener('DOMContentLoaded', () => {
+      SaveSystem.load();
+      UI.refreshAll();
+      Game.init();
+    });
+  </script>
+</body>
+</html>
